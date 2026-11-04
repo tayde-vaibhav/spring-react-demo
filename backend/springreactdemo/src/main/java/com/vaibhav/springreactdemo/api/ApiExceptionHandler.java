@@ -16,6 +16,7 @@ import org.springframework.dao.OptimisticLockingFailureException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.servlet.resource.NoResourceFoundException;
 
 import com.vaibhav.springreactdemo.product.ProductNotFoundException;
 import com.vaibhav.springreactdemo.security.InvalidCredentialsException;
@@ -79,6 +80,12 @@ public class ApiExceptionHandler {
             HttpServletRequest request) {
         return problem(HttpStatus.CONFLICT, "Concurrent update conflict",
                 "The product changed while this update was being saved. Reload and retry.", request);
+    }
+
+    @ExceptionHandler(NoResourceFoundException.class)
+    public ProblemDetail handleResourceNotFound(NoResourceFoundException exception, HttpServletRequest request) {
+        return problem(HttpStatus.NOT_FOUND, "Resource not found",
+                "The requested resource was not found.", request);
     }
 
     @ExceptionHandler(Exception.class)
