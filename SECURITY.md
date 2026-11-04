@@ -44,6 +44,9 @@
   Spring Security's default security headers remain enabled, including
   content-type options, frame protection, and HTTPS-only HSTS; framing is set
   to `DENY`.
+- Swagger UI (`/swagger-ui.html`, `/swagger-ui/**`) and OpenAPI documents
+  (`/v3/api-docs/**`) are publicly viewable only with the `dev` profile. They
+  are disabled and remain blocked in all other profiles.
 
 ## Local setup
 

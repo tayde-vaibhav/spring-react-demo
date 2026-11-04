@@ -5,18 +5,17 @@
 - docs/ — project notes and decisions
 ## Setup
 
-Start the backend first:
+For the backend's MongoDB, environment-variable, and `dev` profile setup, use
+the [MongoDB development setup](#mongodb-development-setup) below. The backend
+requires those settings; running `spring-boot:run` without them will not
+complete startup.
 
-```bash
-cd backend/springreactdemo
-./mvnw spring-boot:run
-```
-
-Then start the frontend in a second terminal:
+After the backend is running, install and start the frontend in a second
+terminal:
 
 ```bash
 cd frontend
-npm install
+npm ci
 npm run dev
 ```
 

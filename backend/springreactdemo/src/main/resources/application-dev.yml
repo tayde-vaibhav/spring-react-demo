@@ -7,6 +7,11 @@ spring:
       auto-index-creation: true
   mongodb:
     uri: ${spring.data.mongodb.uri}
+springdoc:
+  api-docs:
+    enabled: true
+  swagger-ui:
+    enabled: true
 app:
   security:
     jwt:

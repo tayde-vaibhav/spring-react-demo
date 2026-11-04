@@ -158,6 +158,14 @@ class AuthSecurityIntegrationTest {
     }
 
     @Test
+    void apiDocumentationIsUnauthorizedInTestProfile() throws Exception {
+        mockMvc.perform(get("/swagger-ui.html"))
+                .andExpect(status().isUnauthorized());
+        mockMvc.perform(get("/v3/api-docs"))
+                .andExpect(status().isUnauthorized());
+    }
+
+    @Test
     void staleAccessCookieDoesNotBlockCsrfOrLogin() throws Exception {
         Cookie staleCookie = new Cookie(CookieBearerTokenResolver.COOKIE_NAME, "tampered-token");
         mockMvc.perform(get("/api/v1/auth/csrf").cookie(staleCookie))

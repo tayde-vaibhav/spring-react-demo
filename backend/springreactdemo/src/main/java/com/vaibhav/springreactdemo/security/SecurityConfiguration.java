@@ -12,8 +12,10 @@ import com.nimbusds.jose.jwk.source.ImmutableSecret;
 import com.nimbusds.jose.jwk.source.JWKSource;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.context.annotation.Profile;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.annotation.Order;
 import org.springframework.core.env.Environment;
 import org.springframework.core.env.Profiles;
 import org.springframework.http.HttpMethod;
@@ -46,6 +48,17 @@ import org.springframework.web.servlet.HandlerExceptionResolver;
 
 @Configuration
 public class SecurityConfiguration {
+
+    @Bean
+    @Profile("dev")
+    @Order(1)
+    SecurityFilterChain devApiDocumentationSecurityFilterChain(HttpSecurity http) throws Exception {
+        http
+                .securityMatcher("/swagger-ui.html", "/swagger-ui/**", "/v3/api-docs", "/v3/api-docs/**")
+                .authorizeHttpRequests(authorize -> authorize.anyRequest().permitAll())
+                .csrf(AbstractHttpConfigurer::disable);
+        return http.build();
+    }
 
     @Bean
     SecretKey jwtSigningKey(Environment environment, @Value("${app.security.jwt.secret:}") String secret) {
@@ -108,6 +121,7 @@ public class SecurityConfiguration {
     }
 
     @Bean
+    @Order(2)
     SecurityFilterChain securityFilterChain(HttpSecurity http,
             CookieCsrfTokenRepository csrfTokenRepository,
             BearerTokenResolver bearerTokenResolver,
