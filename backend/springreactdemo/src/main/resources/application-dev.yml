@@ -1,0 +1,19 @@
+spring:
+  # spring.data.mongodb.uri is retained as the environment-backed connection
+  # setting; Spring Boot 4 binds Mongo using spring.mongodb.uri.
+  data:
+    mongodb:
+      uri: ${MONGODB_URI}
+      auto-index-creation: true
+  mongodb:
+    uri: ${spring.data.mongodb.uri}
+app:
+  security:
+    jwt:
+      secret: ${JWT_SECRET:}
+      expiry-seconds: ${JWT_EXPIRY_SECONDS:900}
+    cors:
+      allowed-origins: ${CORS_ALLOWED_ORIGINS:http://localhost:5173}
+    dev-users:
+      admin-password: ${DEV_ADMIN_PASSWORD}
+      user-password: ${DEV_USER_PASSWORD}

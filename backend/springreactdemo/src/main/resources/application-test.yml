@@ -1,0 +1,13 @@
+spring:
+  data:
+    mongodb:
+      uri: ${MONGODB_URI:mongodb://localhost:27017/springreactdemo-test}
+  mongodb:
+    uri: ${spring.data.mongodb.uri}
+app:
+  security:
+    jwt:
+      secret: ${JWT_SECRET:test-only-signing-key-do-not-use-outside-tests}
+      expiry-seconds: 900
+    cors:
+      allowed-origins: http://localhost:5173
