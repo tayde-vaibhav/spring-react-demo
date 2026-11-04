@@ -1,0 +1,19 @@
+# Java / Maven
+target/
+*.class
+# Node / frontend
+node_modules/
+dist/
+npm-debug.log*
+# Local configuration and secrets
+.env
+.env.*
+!.env.example
+application-local.properties
+application-local.yml
+# Editor / OS
+.DS_Store
+.idea/
+.vscode/*
+!.vscode/settings.json
+!.vscode/extensions.json

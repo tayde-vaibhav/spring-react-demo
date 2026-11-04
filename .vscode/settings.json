@@ -1,0 +1,8 @@
+{
+"editor.formatOnSave": true,
+"files.insertFinalNewline": true,
+"files.trimTrailingWhitespace": true,
+"editor.tabSize": 2,
+"java.configuration.updateBuildConfiguration": "automatic",
+"java.compile.nullAnalysis.mode": "automatic"
+}

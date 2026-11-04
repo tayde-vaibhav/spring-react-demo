@@ -1,0 +1,9 @@
+{
+"recommendations": [
+"saoudrizwan.claude-dev",
+"vscjava.vscode-java-pack",
+"vmware.vscode-spring-boot",
+"dbaeumer.vscode-eslint",
+esbenp.prettier-vscode"
+]
+}
