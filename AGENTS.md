@@ -1,5 +1,17 @@
 # Project Guide
 
+## Agent instructions
+
+- Before making code changes, read [`.codex/project-rules.md`](.codex/project-rules.md).
+- Before running the repository's gated QA checklist, also read
+  [`.codex/qa-protocol.md`](.codex/qa-protocol.md).
+- Preserve unrelated working-tree changes. Check Git status before and after
+  edits, and never stage, commit, push, rebase, amend, or change remotes unless
+  the user explicitly asks.
+- When an approved behavior change is suitable for documentation, identify the
+  documentation update and obtain approval if it was not included in the
+  approved scope.
+
 ## Overview
 
 This repository contains a Spring Boot REST backend and a React single-page
