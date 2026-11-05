@@ -16,6 +16,7 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
 import com.vaibhav.springreactdemo.product.dto.ProductRequest;
+import com.vaibhav.springreactdemo.product.dto.ProductUpdateRequest;
 
 class ProductRequestValidationTest {
 
@@ -61,8 +62,24 @@ class ProductRequestValidationTest {
                 .isEmpty());
     }
 
+    @Test
+    void updateRequiresANonNegativeVersion() {
+        ProductUpdateRequest missingVersion = validUpdateRequest(null);
+        ProductUpdateRequest negativeVersion = validUpdateRequest(-1L);
+
+        assertTrue(validator.validate(missingVersion).stream()
+                .anyMatch(error -> error.getPropertyPath().toString().equals("version")));
+        assertTrue(validator.validate(negativeVersion).stream()
+                .anyMatch(error -> error.getPropertyPath().toString().equals("version")));
+    }
+
     private ProductRequest validRequest(Map<String, Object> specs) {
         return new ProductRequest("Product", "Description", "Category", new BigDecimal("10.00"),
                 4, List.of("tag"), specs, true);
+    }
+
+    private ProductUpdateRequest validUpdateRequest(Long version) {
+        return new ProductUpdateRequest("Product", "Description", "Category", new BigDecimal("10.00"),
+                4, List.of("tag"), Map.of(), true, version);
     }
 }

@@ -27,6 +27,7 @@ import com.vaibhav.springreactdemo.product.dto.ProductCategoryStatsResponse;
 import com.vaibhav.springreactdemo.product.dto.ProductPageResponse;
 import com.vaibhav.springreactdemo.product.dto.ProductRequest;
 import com.vaibhav.springreactdemo.product.dto.ProductResponse;
+import com.vaibhav.springreactdemo.product.dto.ProductUpdateRequest;
 
 @RestController
 @RequestMapping("/api/v1/products")
@@ -57,7 +58,7 @@ public class ProductController {
     }
 
     @PutMapping("/{id}")
-    public ProductResponse update(@PathVariable String id, @Valid @RequestBody ProductRequest request) {
+    public ProductResponse update(@PathVariable String id, @Valid @RequestBody ProductUpdateRequest request) {
         return productService.update(id, request);
     }
 

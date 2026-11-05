@@ -3,6 +3,7 @@ package com.vaibhav.springreactdemo.security;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Set;
 
 import javax.crypto.SecretKey;
 import javax.crypto.spec.SecretKeySpec;
@@ -37,10 +38,11 @@ import org.springframework.security.oauth2.server.resource.authentication.JwtAut
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.csrf.CsrfFilter;
+import org.springframework.security.web.csrf.CsrfTokenRequestAttributeHandler;
 import org.springframework.security.web.access.AccessDeniedHandler;
 import org.springframework.security.web.AuthenticationEntryPoint;
 import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
-import org.springframework.security.web.csrf.CsrfTokenRequestAttributeHandler;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
@@ -48,6 +50,8 @@ import org.springframework.web.servlet.HandlerExceptionResolver;
 
 @Configuration
 public class SecurityConfiguration {
+
+    private static final Set<String> SAFE_HTTP_METHODS = Set.of("GET", "HEAD", "TRACE", "OPTIONS");
 
     @Bean
     @Profile("dev")
@@ -133,12 +137,14 @@ public class SecurityConfiguration {
                 .cors(cors -> cors.configurationSource(corsConfigurationSource))
                 .csrf(csrf -> csrf
                         .csrfTokenRepository(csrfTokenRepository)
+                        .requireCsrfProtectionMatcher(request -> !SAFE_HTTP_METHODS.contains(request.getMethod()))
                         .csrfTokenRequestHandler(new CsrfTokenRequestAttributeHandler()))
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .headers(headers -> headers.frameOptions(frameOptions -> frameOptions.deny()))
                 .exceptionHandling(exceptions -> exceptions
                         .authenticationEntryPoint(problemAuthenticationEntryPoint)
                         .accessDeniedHandler(problemAccessDeniedHandler))
+                .addFilterBefore(new CookieCsrfHeaderFilter(problemAccessDeniedHandler), CsrfFilter.class)
                 .authorizeHttpRequests(authorize -> authorize
                         .requestMatchers("/api/v1/auth/csrf", "/api/v1/auth/login", "/actuator/health").permitAll()
                         .requestMatchers("/api/v1/auth/me", "/api/v1/auth/logout", "/api/v1/products/stats")

@@ -4,6 +4,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -25,6 +26,8 @@ import org.springframework.data.mongodb.core.query.Query;
 
 import com.vaibhav.springreactdemo.product.dto.ProductRequest;
 import com.vaibhav.springreactdemo.product.dto.ProductResponse;
+import com.vaibhav.springreactdemo.product.dto.ProductUpdateRequest;
+import org.springframework.dao.OptimisticLockingFailureException;
 
 @ExtendWith(MockitoExtension.class)
 class ProductServiceTest {
@@ -66,13 +69,31 @@ class ProductServiceTest {
         Product existing = new Product();
         existing.setId("product-1");
         existing.setName("Old name");
+        existing.setVersion(4L);
         when(productRepository.findById("product-1")).thenReturn(Optional.of(existing));
-        when(productRepository.save(existing)).thenReturn(existing);
+        when(productRepository.save(existing)).thenAnswer(invocation -> {
+            existing.setVersion(existing.getVersion() + 1);
+            return existing;
+        });
 
-        ProductResponse response = productService.update("product-1", validRequest());
+        ProductResponse response = productService.update("product-1", validUpdateRequest(4L));
 
         assertEquals("product-1", response.id());
         assertEquals("Trail Backpack", response.name());
+        assertEquals(5L, response.version());
+    }
+
+    @Test
+    void updateRejectsStaleVersionWithoutSaving() {
+        Product existing = new Product();
+        existing.setId("product-1");
+        existing.setVersion(5L);
+        when(productRepository.findById("product-1")).thenReturn(Optional.of(existing));
+
+        assertThrows(OptimisticLockingFailureException.class,
+                () -> productService.update("product-1", validUpdateRequest(4L)));
+
+        verify(productRepository, never()).save(any(Product.class));
     }
 
     @Test
@@ -139,5 +160,18 @@ class ProductServiceTest {
                 List.of("hiking", "travel"),
                 Map.of("capacityLitres", 28),
                 true);
+    }
+
+    private ProductUpdateRequest validUpdateRequest(long version) {
+        return new ProductUpdateRequest(
+                "Trail Backpack",
+                "Lightweight day pack for hiking.",
+                "Outdoor",
+                new BigDecimal("79.95"),
+                25,
+                List.of("hiking", "travel"),
+                Map.of("capacityLitres", 28),
+                true,
+                version);
     }
 }

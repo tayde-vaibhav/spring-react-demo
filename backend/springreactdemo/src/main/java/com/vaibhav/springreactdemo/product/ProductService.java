@@ -2,6 +2,7 @@ package com.vaibhav.springreactdemo.product;
 
 import java.math.BigDecimal;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 
 import org.springframework.data.domain.PageRequest;
@@ -19,6 +20,8 @@ import com.vaibhav.springreactdemo.product.dto.ProductCategoryStatsResponse;
 import com.vaibhav.springreactdemo.product.dto.ProductPageResponse;
 import com.vaibhav.springreactdemo.product.dto.ProductRequest;
 import com.vaibhav.springreactdemo.product.dto.ProductResponse;
+import com.vaibhav.springreactdemo.product.dto.ProductUpdateRequest;
+import org.springframework.dao.OptimisticLockingFailureException;
 
 @Service
 public class ProductService {
@@ -47,8 +50,11 @@ public class ProductService {
         return productMapper.toResponse(findProduct(id));
     }
 
-    public ProductResponse update(String id, ProductRequest request) {
+    public ProductResponse update(String id, ProductUpdateRequest request) {
         Product product = findProduct(id);
+        if (!Objects.equals(product.getVersion(), request.version())) {
+            throw new OptimisticLockingFailureException("Product version is stale");
+        }
         productMapper.updateEntity(request, product);
         return productMapper.toResponse(productRepository.save(product));
     }

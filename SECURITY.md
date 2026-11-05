@@ -33,13 +33,17 @@
 - CORS uses exact origins from the comma-separated `CORS_ALLOWED_ORIGINS`
   environment variable; wildcard origins are rejected. Development defaults
   to `http://localhost:5173`.
-- Login attempts are limited to five per client IP per 15-minute window in a
-  bounded in-memory limiter. It is process-local and resets on restart; deploy
-  a shared limiter for multi-instance production deployments.
+- Login attempts are limited to five per client IP per configurable window
+  (15 minutes by default) in a bounded in-memory limiter. Configure the window
+  with `LOGIN_RATE_LIMIT_WINDOW`; it must be positive. The limiter is
+  process-local and resets on restart; deploy a shared limiter for
+  multi-instance production deployments.
 - MongoDB search filters are validated, sort fields are allowlisted, page
   offsets and sizes are bounded, and text search uses the declared text index.
-- Product updates use Mongo optimistic locking; concurrent edits return HTTP
-  409 rather than silently overwriting each other.
+- Product responses expose a server-managed version. PUT requests must include
+  the version they read; stale versions and concurrent Mongo writes return
+  HTTP 409 ProblemDetail rather than silently overwriting changes. The client
+  must use the new version returned after each successful update.
 - Only the Actuator health endpoint is exposed, with health details hidden.
   Spring Security's default security headers remain enabled, including
   content-type options, frame protection, and HTTPS-only HSTS; framing is set
@@ -54,3 +58,12 @@ Copy `.env.example` to `.env`, replace every placeholder with unique local
 values (generate a JWT secret with `openssl rand -base64 48` and use strong
 dev-user passwords), then export the variables before launching the backend.
 The `.env` file is ignored by Git and must never be committed.
+
+The `test` Spring profile is for automated tests only and must never be used
+outside tests. It requires a dedicated `MONGODB_TEST_URI` with no fallback to
+the development `MONGODB_URI`.
+
+For QA checklist sections A–C, the login limiter may temporarily use a
+two-minute window by setting `LOGIN_RATE_LIMIT_WINDOW=2m` when starting the
+backend. After QA, restart without that override (or restore the setting to
+`15m`) to return to the default window. The runtime value is read at startup.

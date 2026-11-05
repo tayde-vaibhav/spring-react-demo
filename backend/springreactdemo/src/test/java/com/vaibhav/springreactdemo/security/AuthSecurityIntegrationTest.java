@@ -1,10 +1,12 @@
 package com.vaibhav.springreactdemo.security;
 
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
@@ -38,6 +40,7 @@ import org.springframework.test.web.servlet.request.RequestPostProcessor;
 
 import com.vaibhav.springreactdemo.product.ProductService;
 import com.vaibhav.springreactdemo.product.dto.ProductResponse;
+import com.vaibhav.springreactdemo.product.dto.ProductUpdateRequest;
 import com.vaibhav.springreactdemo.user.User;
 import com.vaibhav.springreactdemo.user.UserRepository;
 
@@ -73,7 +76,7 @@ class AuthSecurityIntegrationTest {
                         Optional.of(new User("user", passwordEncoder.encode("user-test-password"), Set.of("USER"))));
         when(productService.create(any())).thenReturn(new ProductResponse(
                 "product-1", "Test Product", "Description", "Test", new BigDecimal("12.50"),
-                3, List.of(), java.util.Map.of(), true, null, null));
+                3, List.of(), java.util.Map.of(), true, null, null, 0L));
     }
 
     @Test
@@ -146,6 +149,27 @@ class AuthSecurityIntegrationTest {
     }
 
     @Test
+    void expiredJwtReturnsUnauthorized() throws Exception {
+        Instant expiredAt = Instant.now().minusSeconds(60);
+        JwtClaimsSet claims = JwtClaimsSet.builder()
+                .issuer("spring-react-demo")
+                .subject("expired-user")
+                .issuedAt(expiredAt.minusSeconds(300))
+                .expiresAt(expiredAt)
+                .build();
+        String token = jwtEncoder.encode(JwtEncoderParameters.from(
+                org.springframework.security.oauth2.jwt.JwsHeader.with(MacAlgorithm.HS256).build(), claims))
+                .getTokenValue();
+
+        int status = mockMvc.perform(get("/api/v1/auth/me")
+                .cookie(new Cookie(CookieBearerTokenResolver.COOKIE_NAME, token)))
+                .andReturn().getResponse().getStatus();
+
+        org.junit.jupiter.api.Assertions.assertEquals(401, status,
+                "An expired signed JWT must be rejected without an internal error");
+    }
+
+    @Test
     void actuatorEnvIsUnauthorizedAnonymouslyAndDeniedForAdmin() throws Exception {
         mockMvc.perform(get("/actuator/env"))
                 .andExpect(status().isUnauthorized())
@@ -198,7 +222,7 @@ class AuthSecurityIntegrationTest {
     @Test
     void concurrentProductUpdateReturnsConflict() throws Exception {
         AuthCookies admin = loginAs("admin", "admin-test-password");
-        when(productService.update(any(), any())).thenThrow(
+        when(productService.update(anyString(), any(ProductUpdateRequest.class))).thenThrow(
                 new OptimisticLockingFailureException("stale update"));
 
         mockMvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders
@@ -206,9 +230,42 @@ class AuthSecurityIntegrationTest {
                 .cookie(admin.access(), admin.csrf().cookie())
                 .header("X-XSRF-TOKEN", admin.csrf().token())
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(validProductJson()))
+                .content(validProductUpdateJson(0)))
                 .andExpect(status().isConflict())
                 .andExpect(content().contentTypeCompatibleWith("application/problem+json"));
+    }
+
+    @Test
+    void adminUpdateReturnsTheNewVersion() throws Exception {
+        AuthCookies admin = loginAs("admin", "admin-test-password");
+        when(productService.update(anyString(), any(ProductUpdateRequest.class))).thenReturn(new ProductResponse(
+                "product-1", "Test Product", "Description", "Test", new BigDecimal("12.50"),
+                3, List.of(), java.util.Map.of(), true, null, null, 1L));
+
+        mockMvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders
+                .put("/api/v1/products/product-1")
+                .cookie(admin.access(), admin.csrf().cookie())
+                .header("X-XSRF-TOKEN", admin.csrf().token())
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(validProductUpdateJson(0)))
+                .andExpect(status().isOk())
+                .andExpect(org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath("$.version").value(1));
+    }
+
+    @Test
+    void updateRequiresVersion() throws Exception {
+        AuthCookies admin = loginAs("admin", "admin-test-password");
+
+        mockMvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders
+                .put("/api/v1/products/product-1")
+                .cookie(admin.access(), admin.csrf().cookie())
+                .header("X-XSRF-TOKEN", admin.csrf().token())
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(validProductJson()))
+                .andExpect(status().isBadRequest())
+                .andExpect(content().contentTypeCompatibleWith("application/problem+json"));
+
+        verify(productService, never()).update(anyString(), any(ProductUpdateRequest.class));
     }
 
     @Test
@@ -223,6 +280,94 @@ class AuthSecurityIntegrationTest {
                 .andExpect(status().isForbidden())
                 .andExpect(content().contentTypeCompatibleWith("application/problem+json"));
         verify(productService, never()).create(any());
+    }
+
+    @Test
+    void productWritesRejectUnknownServerControlledFields() throws Exception {
+        AuthCookies admin = loginAs("admin", "admin-test-password");
+        String requestWithUnknownFields = withUnknownServerFields(validProductJson());
+
+        mockMvc.perform(post("/api/v1/products")
+                .cookie(admin.access(), admin.csrf().cookie())
+                .header("X-XSRF-TOKEN", admin.csrf().token())
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(requestWithUnknownFields))
+                .andExpect(status().isBadRequest())
+                .andExpect(content().contentTypeCompatibleWith("application/problem+json"));
+
+        mockMvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders
+                .put("/api/v1/products/product-1")
+                .cookie(admin.access(), admin.csrf().cookie())
+                .header("X-XSRF-TOKEN", admin.csrf().token())
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(withUnknownServerFields(validProductUpdateJson(0))))
+                .andExpect(status().isBadRequest())
+                .andExpect(content().contentTypeCompatibleWith("application/problem+json"));
+
+        verify(productService, never()).create(any());
+        verify(productService, never()).update(anyString(), any(ProductUpdateRequest.class));
+    }
+
+    @Test
+    void unsupportedProductWriteMediaTypeReturnsSanitized415ProblemDetail() throws Exception {
+        AuthCookies admin = loginAs("admin", "admin-test-password");
+
+        mockMvc.perform(post("/api/v1/products")
+                .cookie(admin.access(), admin.csrf().cookie())
+                .header("X-XSRF-TOKEN", admin.csrf().token())
+                .contentType(MediaType.TEXT_PLAIN)
+                .content("not json"))
+                .andExpect(status().isUnsupportedMediaType())
+                .andExpect(content().contentTypeCompatibleWith("application/problem+json"))
+                .andExpect(content().json("{\"status\":415,\"title\":\"Unsupported media type\"}"))
+                .andExpect(content().string(org.hamcrest.Matchers.not(
+                        org.hamcrest.Matchers.containsString("HttpMediaTypeNotSupportedException"))));
+
+        verify(productService, never()).create(any());
+    }
+
+    @Test
+    void productMutationsRequireTheCsrfHeaderToMatchTheCookieToken() throws Exception {
+        AuthCookies admin = loginAs("admin", "admin-test-password");
+
+        int missingPostHeader = mockMvc.perform(post("/api/v1/products")
+                .cookie(admin.access(), admin.csrf().cookie())
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(validProductJson()))
+                .andReturn().getResponse().getStatus();
+
+        int wrongPostHeader = mockMvc.perform(post("/api/v1/products")
+                .cookie(admin.access(), admin.csrf().cookie())
+                .header("X-XSRF-TOKEN", "incorrect-csrf-token")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(validProductJson()))
+                .andReturn().getResponse().getStatus();
+
+        int missingDeleteHeader = mockMvc.perform(delete("/api/v1/products/product-1")
+                .cookie(admin.access(), admin.csrf().cookie()))
+                .andReturn().getResponse().getStatus();
+
+        int wrongDeleteHeader = mockMvc.perform(delete("/api/v1/products/product-1")
+                .cookie(admin.access(), admin.csrf().cookie())
+                .header("X-XSRF-TOKEN", "incorrect-csrf-token"))
+                .andReturn().getResponse().getStatus();
+
+        org.junit.jupiter.api.Assertions.assertEquals(
+                List.of(403, 403, 403, 403),
+                List.of(missingPostHeader, wrongPostHeader, missingDeleteHeader, wrongDeleteHeader),
+                "Unsafe requests must reject missing or mismatched CSRF headers");
+
+        verify(productService, never()).create(any());
+        verify(productService, never()).delete(anyString());
+
+        int validDeleteHeader = mockMvc.perform(delete("/api/v1/products/product-1")
+                .cookie(admin.access(), admin.csrf().cookie())
+                .header("X-XSRF-TOKEN", admin.csrf().token()))
+                .andReturn().getResponse().getStatus();
+
+        org.junit.jupiter.api.Assertions.assertEquals(204, validDeleteHeader,
+                "A request with the matching CSRF header should succeed");
+        verify(productService).delete("product-1");
     }
 
     @Test
@@ -288,6 +433,15 @@ class AuthSecurityIntegrationTest {
 
     private String validProductJson() {
         return "{\"name\":\"Test Product\",\"description\":\"A test product\",\"category\":\"Test\",\"price\":12.50,\"stock\":3,\"tags\":[\"test\"],\"specs\":{\"size\":\"small\"},\"active\":true}";
+    }
+
+    private String validProductUpdateJson(long version) {
+        return "{\"name\":\"Test Product\",\"description\":\"A test product\",\"category\":\"Test\",\"price\":12.50,\"stock\":3,\"tags\":[\"test\"],\"specs\":{\"size\":\"small\"},\"active\":true,\"version\":" + version + "}";
+    }
+
+    private String withUnknownServerFields(String json) {
+        return json.substring(0, json.length() - 1)
+                + ",\"id\":\"client-controlled\",\"roles\":[\"ADMIN\"]}";
     }
 
     private record Csrf(Cookie cookie, String token) {

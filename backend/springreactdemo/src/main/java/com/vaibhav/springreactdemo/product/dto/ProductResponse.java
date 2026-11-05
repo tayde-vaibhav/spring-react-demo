@@ -16,5 +16,6 @@ public record ProductResponse(
         Map<String, Object> specs,
         boolean active,
         Instant createdAt,
-        Instant updatedAt) {
+        Instant updatedAt,
+        Long version) {
 }
