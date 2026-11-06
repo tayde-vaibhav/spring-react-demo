@@ -23,6 +23,36 @@ The frontend requests `GET /api/app-test`. Vite proxies that request to the
 backend's `GET http://localhost:8080/app-test` endpoint during development.
 For another backend URL, set `VITE_API_BASE_URL` before starting the frontend.
 
+## Backend tests and coverage
+
+Before running backend tests, export `MONGODB_TEST_URI` for a dedicated test
+database, never the development database. The `test` profile requires this
+variable with no fallback to `MONGODB_URI`; use that profile only for automated
+tests. Do not put credentials in commands or commit them to this repository.
+
+From `backend/springreactdemo/`, run:
+
+```bash
+./mvnw clean verify
+```
+
+JaCoCo `0.8.16` collects coverage in Maven's test JVMs and generates HTML and
+XML reports during `verify`. Java 25 is supported (see the
+[JaCoCo release notes](https://www.jacoco.org/jacoco/trunk/doc/changes.html)).
+Report paths, relative to the backend module:
+
+- HTML: `target/site/jacoco/index.html` (open locally after a successful build).
+- XML: `target/site/jacoco/jacoco.xml`.
+- Execution data: `target/jacoco.exec`.
+
+The first run may download the plugin and its dependencies from Maven Central.
+All reports stay under the Git-ignored `target/` directory. The agent writes
+to a file, not a network listener; it does not attach to the running backend,
+so no backend restart is required. No minimum coverage gate or report
+exclusions are configured initially. Coverage shows executed lines/branches,
+not assertion quality, and does not include browser activity against the
+separately running application.
+
 ## Product API update contract
 
 Product responses include a server-managed `version`. Send that value with all
