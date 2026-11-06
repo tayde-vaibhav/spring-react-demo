@@ -9,6 +9,8 @@
     "lint": "eslint .",
     "test": "vitest run",
     "test:e2e": "playwright test",
+    "test:a11y": "node e2e/accessibility.mjs",
+    "test:responsive": "node e2e/responsive.mjs",
     "typecheck:e2e": "tsc -p tsconfig.e2e.json",
     "preview": "vite preview"
   },
@@ -24,6 +26,7 @@
     "recharts": "^3.10.1"
   },
   "devDependencies": {
+    "@axe-core/playwright": "^4.14.0",
     "@eslint/js": "^9.39.5",
     "@playwright/test": "1.65.0",
     "@types/node": "^26.6.6",

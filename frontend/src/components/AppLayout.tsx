@@ -27,9 +27,9 @@ export function AppLayout() {
     <Box className="app-frame">
       <AppBar position="sticky" color="inherit" elevation={0} className="topbar">
         <Toolbar className="topbar-inner">
-          <RouterLink className="brand" to="/dashboard" aria-label="Fieldnote home">
-            <span className="brand-mark">F</span>
-            <span>Fieldnote<span className="brand-period">.</span></span>
+          <RouterLink className="brand" to="/dashboard" aria-label="FFieldnote. home">
+            <span className="brand-mark" aria-hidden="true">F</span>
+            <span>Fieldnote<span className="brand-period" aria-hidden="true">.</span></span>
           </RouterLink>
           <Box component="nav" className="main-nav" aria-label="Main navigation">
             <NavLink to="/dashboard" className={({ isActive }) => `nav-link${isActive ? ' active' : ''}`}>

@@ -53,6 +53,65 @@ exclusions are configured initially. Coverage shows executed lines/branches,
 not assertion quality, and does not include browser activity against the
 separately running application.
 
+## Frontend accessibility checks
+
+The login page has a main landmark; dashboard chart titles use sequential
+headings, while metric values are ordinary text. Decorative brand marks are
+hidden from assistive technology. Text colors retain contrast against their
+backgrounds. The delete dialog initially focuses **Keep product** after its
+transition, retains MUI's focus trap, and restores focus to its trigger on
+Escape or cancellation.
+
+With the backend and frontend already running, export `DEV_ADMIN_PASSWORD`
+in the test process (never put its value in commands or recordings), then run
+from `frontend/`:
+
+```bash
+npm run test:a11y
+```
+
+The username defaults to `admin`; `DEV_ADMIN_USERNAME` is optional. The
+version-controlled [F1 runner](frontend/e2e/accessibility.mjs) uses Playwright
+Chromium and `@axe-core/playwright` to scan login, dashboard, products, the
+create form, and the delete dialog, and checks keyboard order, focus trapping,
+Escape, and cancellation. It permits browser traffic only to
+`http://localhost:5173`, blocks product writes, and verifies the product count
+stays 500. Passwords/cookies remain in memory, recordings are disabled, and
+output contains only sanitized diagnostics. This standalone command is not
+included in the default unit-test or Playwright E2E commands.
+
+The runner needs the npm dev dependencies and Playwright's Chromium headless
+shell installed. Any missing package/browser download requires separate QA
+approval; the test does not install tools or start services. Automated checks
+do not establish complete WCAG conformance: axe `incomplete` results need
+manual review, and screen-reader/responsive audits are separate work.
+
+## Frontend responsive smoke checks
+
+At widths of 380px and below, header navigation wraps onto a second row so
+the brand, create action and account menu remain visible. Navigation controls
+are not hidden or shrunk to mask page overflow. Wide product tables scroll
+inside their own container rather than widening the page.
+
+With both apps already running and `DEV_ADMIN_PASSWORD` exported in the test
+process, run from `frontend/`:
+
+```bash
+npm run test:responsive
+```
+
+The [F2 runner](frontend/e2e/responsive.mjs) checks login, dashboard, products,
+the delete dialog, and create/edit forms at 320px, 380px, 381px, 390px and
+1440px widths. The 380/381px cases cover both sides of the header breakpoint.
+It reuses one login (`admin` by default; `DEV_ADMIN_USERNAME` is optional),
+checks document/control bounds and intended local table scrolling, and
+verifies the product count stays 500 without submitting product writes.
+It uses only the existing Chromium, localhost traffic, in-memory credentials
+and sanitized diagnostics, with recordings disabled. It never installs tools
+or starts services and is separate from the default unit/E2E commands.
+This is viewport geometry/interaction smoke, not physical-device emulation,
+touch testing, pixel-level visual review, or Safari/Firefox coverage.
+
 ## Product API update contract
 
 Product responses include a server-managed `version`. Send that value with all

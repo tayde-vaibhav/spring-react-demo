@@ -41,14 +41,14 @@ export function DashboardPage() {
       <Box className="chart-grid">
         <Card className="chart-card">
           <CardContent>
-            <Box className="chart-heading"><Box><Typography className="eyebrow">DISTRIBUTION</Typography><Typography variant="h6">Products by category</Typography></Box><span className="chart-unit">ITEMS</span></Box>
+            <Box className="chart-heading"><Box><Typography className="eyebrow">DISTRIBUTION</Typography><Typography component="h2" variant="h6">Products by category</Typography></Box><span className="chart-unit">ITEMS</span></Box>
             {stats.isLoading ? <ChartLoading /> : items.length === 0 ? <ChartEmpty /> : (
               <Box className="chart-area" role="img" aria-label="Bar chart showing product counts by category">
                 <ResponsiveContainer width="100%" height="100%">
                   <BarChart data={items} margin={{ top: 16, right: 12, left: -20, bottom: 36 }}>
                     <CartesianGrid stroke="#e9ede8" vertical={false} strokeDasharray="3 4" />
-                    <XAxis dataKey="category" tick={{ fill: '#79847e', fontSize: 11 }} axisLine={false} tickLine={false} angle={-25} textAnchor="end" interval={0} />
-                    <YAxis allowDecimals={false} tick={{ fill: '#79847e', fontSize: 11 }} axisLine={false} tickLine={false} />
+                    <XAxis dataKey="category" tick={{ fill: '#52665b', fontSize: 11 }} axisLine={false} tickLine={false} angle={-25} textAnchor="end" interval={0} />
+                    <YAxis allowDecimals={false} tick={{ fill: '#52665b', fontSize: 11 }} axisLine={false} tickLine={false} />
                     <Tooltip cursor={{ fill: '#f3f6f1' }} formatter={(value) => [`${Number(value).toLocaleString()} items`, 'Products']} />
                     <Bar dataKey="count" radius={[7, 7, 2, 2]} maxBarSize={44}>
                       {items.map((item, index) => <Cell key={item.category} fill={CHART_COLORS[index % CHART_COLORS.length]} />)}
@@ -61,14 +61,14 @@ export function DashboardPage() {
         </Card>
         <Card className="chart-card">
           <CardContent>
-            <Box className="chart-heading"><Box><Typography className="eyebrow">VALUE</Typography><Typography variant="h6">Average price by category</Typography></Box><span className="chart-unit">AVERAGE</span></Box>
+            <Box className="chart-heading"><Box><Typography className="eyebrow">VALUE</Typography><Typography component="h2" variant="h6">Average price by category</Typography></Box><span className="chart-unit">AVERAGE</span></Box>
             {stats.isLoading ? <ChartLoading /> : items.length === 0 ? <ChartEmpty /> : (
               <Box className="chart-area" role="img" aria-label="Bar chart showing average prices by category">
                 <ResponsiveContainer width="100%" height="100%">
                   <BarChart data={items} margin={{ top: 16, right: 12, left: -20, bottom: 36 }}>
                     <CartesianGrid stroke="#e9ede8" vertical={false} strokeDasharray="3 4" />
-                    <XAxis dataKey="category" tick={{ fill: '#79847e', fontSize: 11 }} axisLine={false} tickLine={false} angle={-25} textAnchor="end" interval={0} />
-                    <YAxis tick={{ fill: '#79847e', fontSize: 11 }} axisLine={false} tickLine={false} tickFormatter={(value) => formatPrice(Number(value))} />
+                    <XAxis dataKey="category" tick={{ fill: '#52665b', fontSize: 11 }} axisLine={false} tickLine={false} angle={-25} textAnchor="end" interval={0} />
+                    <YAxis tick={{ fill: '#52665b', fontSize: 11 }} axisLine={false} tickLine={false} tickFormatter={(value) => formatPrice(Number(value))} />
                     <Tooltip cursor={{ fill: '#f3f6f1' }} formatter={(value) => [formatPrice(Number(value)), 'Average price']} />
                     <Bar dataKey="averagePrice" fill="#d37d59" radius={[7, 7, 2, 2]} maxBarSize={44} />
                   </BarChart>
@@ -85,7 +85,7 @@ export function DashboardPage() {
 }
 
 function MetricCard({ icon, label, value, note }: { icon: ReactNode; label: string; value: string; note: string }) {
-  return <Card className="metric-card"><CardContent><Box className="metric-top"><span className="metric-icon">{icon}</span><Typography className="metric-label">{label}</Typography></Box><Typography variant="h3" className="metric-value">{value}</Typography><Typography variant="caption" color="text.secondary">{note}</Typography></CardContent></Card>
+  return <Card className="metric-card"><CardContent><Box className="metric-top"><span className="metric-icon">{icon}</span><Typography className="metric-label">{label}</Typography></Box><Typography component="p" variant="h3" className="metric-value">{value}</Typography><Typography variant="caption" color="text.secondary">{note}</Typography></CardContent></Card>
 }
 
 function ChartLoading() {
