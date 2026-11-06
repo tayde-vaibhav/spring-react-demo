@@ -33,7 +33,7 @@ export function LoginPage() {
   }
 
   return (
-    <Box className="login-page">
+    <Box component="main" className="login-page">
       <Box className="login-story">
         <RouterBrand />
         <Box>
@@ -84,5 +84,5 @@ export function LoginPage() {
 }
 
 function RouterBrand() {
-  return <div className="brand login-brand"><span className="brand-mark">F</span><span>Fieldnote<span className="brand-period">.</span></span></div>
+  return <div className="brand login-brand"><span className="brand-mark" aria-hidden="true">F</span><span>Fieldnote<span className="brand-period" aria-hidden="true">.</span></span></div>
 }

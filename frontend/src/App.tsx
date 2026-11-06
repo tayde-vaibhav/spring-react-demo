@@ -37,7 +37,7 @@ const theme = createTheme({
     MuiCard: { styleOverrides: { root: { border: '1px solid #e7eae5', boxShadow: '0 12px 34px rgba(28, 43, 37, 0.045)' } } },
     MuiButton: { styleOverrides: { root: { borderRadius: 10, minHeight: 42 } } },
     MuiOutlinedInput: { styleOverrides: { root: { borderRadius: 10, backgroundColor: '#fff' } } },
-    MuiTableCell: { styleOverrides: { head: { color: '#738079', fontSize: 12, fontWeight: 700, letterSpacing: '.055em', textTransform: 'uppercase' } } },
+    MuiTableCell: { styleOverrides: { head: { color: '#52665b', fontSize: 12, fontWeight: 700, letterSpacing: '.055em', textTransform: 'uppercase' } } },
   },
 })
 

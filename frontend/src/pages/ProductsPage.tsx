@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { Link as RouterLink } from 'react-router'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import {
@@ -31,6 +31,7 @@ export function ProductsPage() {
   const [maxPrice, setMaxPrice] = useState('')
   const [selected, setSelected] = useState<Product | null>(null)
   const [deleteError, setDeleteError] = useState('')
+  const keepProductRef = useRef<HTMLButtonElement>(null)
 
   useEffect(() => {
     const timer = window.setTimeout(() => { setSearch(searchInput.trim()); setPage(0) }, 350)
@@ -166,11 +167,12 @@ export function ProductsPage() {
         />
       </Card>
 
-      <Dialog open={Boolean(selected)} onClose={() => !removeProduct.isPending && setSelected(null)} aria-labelledby="delete-title" aria-describedby="delete-description">
+      <Dialog open={Boolean(selected)} onClose={() => !removeProduct.isPending && setSelected(null)} aria-labelledby="delete-title" aria-describedby="delete-description"
+        slotProps={{ transition: { onEntered: () => keepProductRef.current?.focus() } }}>
         <DialogTitle id="delete-title">Remove this product?</DialogTitle>
         <DialogContent><DialogContentText id="delete-description">“{selected?.name}” will be removed from your catalogue. This cannot be undone.</DialogContentText></DialogContent>
         <DialogActions>
-          <Button autoFocus onClick={() => setSelected(null)} disabled={removeProduct.isPending}>Keep product</Button>
+          <Button ref={keepProductRef} autoFocus onClick={() => setSelected(null)} disabled={removeProduct.isPending}>Keep product</Button>
           <Button color="error" variant="contained" onClick={() => selected && removeProduct.mutate(selected.id)} disabled={removeProduct.isPending}>
             {removeProduct.isPending ? <CircularProgress size={18} color="inherit" /> : 'Remove product'}
           </Button>
