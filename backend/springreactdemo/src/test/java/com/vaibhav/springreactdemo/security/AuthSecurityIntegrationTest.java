@@ -309,6 +309,52 @@ class AuthSecurityIntegrationTest {
     }
 
     @Test
+    void productWritesRejectEachUnknownFieldIndependently() throws Exception {
+        AuthCookies admin = loginAs("admin", "admin-test-password");
+        List<String> extraFields = List.of(
+                "\"id\":\"qa-client-supplied\"",
+                "\"roles\":[\"ADMIN\"]",
+                "\"createdAt\":\"2026-01-01T00:00:00Z\"",
+                "\"updatedAt\":\"2026-01-01T00:00:00Z\"",
+                "\"unexpected\":\"qa-unknown-value\"");
+
+        for (String extraField : extraFields) {
+            for (boolean update : List.of(false, true)) {
+                String validJson = update ? validProductUpdateJson(0) : validProductJson();
+                String requestJson = validJson.substring(0, validJson.length() - 1) + "," + extraField + "}";
+                var request = update
+                        ? org.springframework.test.web.servlet.request.MockMvcRequestBuilders
+                                .put("/api/v1/products/product-1")
+                        : post("/api/v1/products");
+                mockMvc.perform(request
+                        .cookie(admin.access(), admin.csrf().cookie())
+                        .header("X-XSRF-TOKEN", admin.csrf().token())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(requestJson))
+                        .andExpect(status().isBadRequest())
+                        .andExpect(content().contentTypeCompatibleWith("application/problem+json"))
+                        .andExpect(content().json("{\"status\":400,\"title\":\"Invalid request body\","
+                                + "\"detail\":\"The request body is missing or is not valid JSON.\"}"))
+                        .andExpect(content().string(org.hamcrest.Matchers.not(
+                                org.hamcrest.Matchers.containsString("qa-unknown-value"))))
+                        .andExpect(content().string(org.hamcrest.Matchers.not(
+                                org.hamcrest.Matchers.containsString("UnrecognizedPropertyException"))));
+            }
+        }
+
+        mockMvc.perform(post("/api/v1/products")
+                .cookie(admin.access(), admin.csrf().cookie())
+                .header("X-XSRF-TOKEN", admin.csrf().token())
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(validProductJson().replace("\"active\":true", "\"active\":true,\"version\":0")))
+                .andExpect(status().isBadRequest())
+                .andExpect(content().contentTypeCompatibleWith("application/problem+json"));
+
+        verify(productService, never()).create(any());
+        verify(productService, never()).update(anyString(), any(ProductUpdateRequest.class));
+    }
+
+    @Test
     void unsupportedProductWriteMediaTypeReturnsSanitized415ProblemDetail() throws Exception {
         AuthCookies admin = loginAs("admin", "admin-test-password");
 

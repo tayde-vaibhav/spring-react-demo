@@ -7,6 +7,17 @@
 **/node_modules/
 **/dist/
 **/coverage/
+# Playwright output and authentication state (never persist QA credentials)
+**/test-results/
+**/playwright-report/
+**/playwright/.cache/
+**/traces/
+**/videos/
+**/screenshots/
+**/.auth/
+**/storage-state*.json
+**/auth-state*.json
+**/*.trace.zip
 **/secrets/**
 npm-debug.log*
 yarn-debug.log*

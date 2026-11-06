@@ -57,6 +57,28 @@ describe('API client', () => {
     })
   })
 
+  it.each(['create', 'update'] as const)('only sends declared fields on %s even with a wider input object', async (operation) => {
+    const fetchMock = vi.fn<typeof fetch>()
+    fetchMock.mockResolvedValue(new Response(JSON.stringify({ id: 'p-1', version: 8 }), {
+      headers: { 'content-type': 'application/json' },
+    }))
+    vi.stubGlobal('fetch', fetchMock)
+    const fields = {
+      name: 'QA product', description: '', category: 'QA', price: 10, stock: 1,
+      tags: ['qa'], specs: { dimensions: { width: 3 } }, active: true,
+    }
+    const widerInput = {
+      ...fields, id: 'client-supplied-id', version: 7, roles: ['ADMIN'],
+      createdAt: '2026-01-01T00:00:00Z', updatedAt: '2026-01-01T00:00:00Z', unexpected: 'not-a-request-field',
+    }
+    if (operation === 'create') await api.createProduct(widerInput, 'csrf-value')
+    else await api.updateProduct('p-1', widerInput, 'csrf-value')
+
+    const request = fetchMock.mock.calls[0]?.[1]
+    expect(request?.method).toBe(operation === 'create' ? 'POST' : 'PUT')
+    expect(JSON.parse(String(request?.body))).toEqual(operation === 'create' ? fields : { ...fields, version: 7 })
+  })
+
   it('sends the loaded product version on updates', async () => {
     const fetchMock = vi.fn<typeof fetch>()
     fetchMock.mockResolvedValue(new Response(JSON.stringify({ id: 'p-1', version: 8 }), {

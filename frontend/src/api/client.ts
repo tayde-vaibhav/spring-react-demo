@@ -115,6 +115,11 @@ function withQuery(values: Record<string, string | number | undefined>): string 
   return encoded ? `?${encoded}` : ''
 }
 
+function productFields(product: ProductRequest): ProductRequest {
+  const { name, description, category, price, stock, tags, specs, active } = product
+  return { name, description, category, price, stock, tags, specs, active }
+}
+
 export const api = {
   onUnauthorized(handler: () => void): () => void {
     window.addEventListener(UNAUTHORIZED_EVENT, handler)
@@ -165,14 +170,14 @@ export const api = {
     request<Product>('/v1/products', {
       method: 'POST',
       headers: { 'X-XSRF-TOKEN': csrfToken },
-      body: JSON.stringify(product),
+      body: JSON.stringify(productFields(product)),
     }),
 
   updateProduct: (id: string, product: ProductUpdateRequest, csrfToken: string) =>
     request<Product>(`/v1/products/${encodeURIComponent(id)}`, {
       method: 'PUT',
       headers: { 'X-XSRF-TOKEN': csrfToken },
-      body: JSON.stringify(product),
+      body: JSON.stringify({ ...productFields(product), version: product.version }),
     }),
 
   deleteProduct: (id: string, csrfToken: string) =>
