@@ -1,1 +1,0 @@
-Review the changes from this phase as a strict senior reviewer. Check for: security issues (secrets, injection, over-permissive access), missing validation, missing or weak tests, inconsistent layering, N+1 or unbounded queries, and deviations from AGENTS.md. List findings by severity with file and line, and propose fixes but don't apply them until I approve.

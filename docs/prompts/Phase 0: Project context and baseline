@@ -1,9 +1,0 @@
-Inspect this repository (Spring Boot backend + React frontend) and do NOT change any code yet.
-
-1. Report: build tool (Maven), Java version, Spring Boot version, React version, bundler, TypeScript or JavaScript, package manager, folder structure, and existing dependencies.
-2. Verify the baseline: run the backend build/tests and the frontend install/build, and report any failures.
-3. Create an AGENTS.md at the repo root containing: project overview, tech stack with the exact detected versions, how to build/test/run each module, coding conventions (layered architecture Controller -> Service -> Repository, DTOs instead of exposing entities, constructor injection, no secrets in code), and the rule "make small, focused changes and never commit secrets or .env files".
-4. Create/extend .gitignore (build outputs, node_modules, .env, IDE files).
-5. Confirm we are on the git branch "showcase-app"; if not, tell me instead of switching.
-
-Show me a summary of what you found and the files you created.

@@ -1,4 +1,0 @@
-set -a
-. ./.env
-set +a
-LOGGING_FILE_NAME=$PWD/logs/backend-qa.log LOGIN_RATE_LIMIT_WINDOW=2m SPRING_PROFILES_ACTIVE=dev CORS_ALLOWED_ORIGINS='http://localhost:5173,http://127.0.0.1:5173' ./backend/springreactdemo/mvnw -f backend/springreactdemo/pom.xml spring-boot:run

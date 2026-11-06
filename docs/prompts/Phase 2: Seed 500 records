@@ -1,9 +1,0 @@
-Add a data seeder for the Product collection.
-
-1. Add Datafaker as a dependency (use the latest stable version).
-2. Create a seeder (CommandLineRunner or ApplicationRunner) that is active ONLY under the "dev" profile, and inserts 500 realistic products only if the collection is empty.
-3. Use a fixed random seed so the data is reproducible. Generate: 8-10 categories, prices between 5 and 2000, stock 0-500, 2-5 tags, and category-appropriate nested specs. Use insertAll in batches rather than 500 single inserts.
-4. Make the record count configurable via a property (default 500).
-5. Log how many records were inserted.
-
-Then verify: start the app with the dev profile and confirm exactly 500 documents exist (give me the mongosh command to check). Run it twice to confirm it does not seed again.
