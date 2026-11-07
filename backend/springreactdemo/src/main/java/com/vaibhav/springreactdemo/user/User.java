@@ -2,6 +2,8 @@ package com.vaibhav.springreactdemo.user;
 
 import java.util.Set;
 
+import com.vaibhav.springreactdemo.common.CollectionSnapshots;
+
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.index.Indexed;
 import org.springframework.data.mongodb.core.mapping.Document;
@@ -25,7 +27,7 @@ public class User {
     public User(String username, String passwordHash, Set<String> roles) {
         this.username = username;
         this.passwordHash = passwordHash;
-        this.roles = roles;
+        this.roles = CollectionSnapshots.set(roles);
     }
 
     public String getId() {
@@ -41,6 +43,6 @@ public class User {
     }
 
     public Set<String> getRoles() {
-        return roles;
+        return CollectionSnapshots.set(roles);
     }
 }

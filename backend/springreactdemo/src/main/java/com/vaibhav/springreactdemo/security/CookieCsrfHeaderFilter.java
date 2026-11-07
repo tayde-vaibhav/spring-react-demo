@@ -37,7 +37,10 @@ final class CookieCsrfHeaderFilter extends OncePerRequestFilter {
 
         String cookieToken = csrfCookieValue(request);
         String headerToken = request.getHeader(CSRF_HEADER);
-        if (cookieToken == null || headerToken == null || !MessageDigest.isEqual(
+        // Cookie-bearer requests are exempted by the resource-server CSRF matcher.
+        // This guard must reject blank pairs itself, not merely compare them as equal.
+        if (cookieToken == null || cookieToken.isBlank() || headerToken == null || headerToken.isBlank()
+                || !MessageDigest.isEqual(
                 cookieToken.getBytes(StandardCharsets.UTF_8), headerToken.getBytes(StandardCharsets.UTF_8))) {
             accessDeniedHandler.handle(request, response, new AccessDeniedException("CSRF validation failed"));
             return;

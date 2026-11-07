@@ -14,6 +14,17 @@
   double-submit CSRF token: first GET `/api/v1/auth/csrf`, retain its
   `XSRF-TOKEN` cookie, and send the returned token in `X-XSRF-TOKEN`. The CSRF
   cookie is intentionally readable by JavaScript; the JWT cookie is not.
+- The custom `CookieCsrfHeaderFilter` requires exactly one nonblank CSRF cookie
+  and a matching nonblank header on unsafe requests, comparing values without
+  trimming or normalization. Empty or Java `String.isBlank()` whitespace-only
+  values return the same 403 ProblemDetail as missing/mismatched CSRF material.
+  Duplicate CSRF cookies are rejected; safe-method behavior is unchanged.
+- Spring Security's resource-server configuration exempts requests recognized
+  by its bearer authentication converter from Spring's `CsrfFilter`. Because
+  this application resolves bearer JWTs from a cookie, the custom filter is
+  responsible for enforcing the cookie/header contract on those requests.
+  Do not remove it on the assumption that the framework filter checks again.
+  Login ignores stale access cookies and still follows the CSRF bootstrap flow.
 - POST `/api/v1/auth/logout` clears the browser's JWT cookie. A stateless JWT
   cannot be individually revoked after it has been copied; a stolen token can
   remain valid until its short expiry. Deleted users or changed roles likewise

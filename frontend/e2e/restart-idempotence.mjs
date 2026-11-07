@@ -8,6 +8,7 @@ import { execFile } from 'node:child_process'
 import { promisify, isDeepStrictEqual } from 'node:util'
 import { createHash } from 'node:crypto'
 import { fileURLToPath } from 'node:url'
+import { canonical } from './support/canonical.mjs'
 
 const execute = promisify(execFile)
 const root = fileURLToPath(new URL('../../', import.meta.url))
@@ -20,14 +21,6 @@ const metrics = { productWrites: 0, userWrites: 0, logins: 0 }
 
 class QaError extends Error {}
 function check(condition, code) { if (!condition) throw new QaError(code) }
-function canonical(value) {
-  if (Array.isArray(value)) return value.map(canonical)
-  if (value && typeof value === 'object') {
-    return Object.fromEntries(Object.keys(value).sort().map(key => [key, canonical(value[key])]))
-  }
-  return value
-}
-
 async function request(path, { method = 'GET', body, token, anonymous = false } = {}) {
   check(path.startsWith('/api/v1/') || path === '/actuator/health', 'QA_INVALID_PATH')
   const response = await fetch('http://localhost:8080' + path, {

@@ -5,6 +5,8 @@ import java.time.Instant;
 import java.util.List;
 import java.util.Map;
 
+import com.vaibhav.springreactdemo.common.CollectionSnapshots;
+
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.annotation.LastModifiedDate;
@@ -102,19 +104,19 @@ public class Product {
     }
 
     public List<String> getTags() {
-        return tags;
+        return CollectionSnapshots.list(tags);
     }
 
     public void setTags(List<String> tags) {
-        this.tags = tags;
+        this.tags = CollectionSnapshots.list(tags);
     }
 
     public Map<String, Object> getSpecs() {
-        return specs;
+        return CollectionSnapshots.specs(specs);
     }
 
     public void setSpecs(Map<String, Object> specs) {
-        this.specs = specs;
+        this.specs = CollectionSnapshots.specs(specs);
     }
 
     public boolean isActive() {

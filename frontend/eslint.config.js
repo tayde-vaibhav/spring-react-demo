@@ -8,6 +8,26 @@ import { defineConfig, globalIgnores } from 'eslint/config'
 export default defineConfig([
   globalIgnores(['dist']),
   {
+    files: ['**/*.mjs'],
+    extends: [js.configs.recommended],
+    languageOptions: {
+      globals: globals.node,
+    },
+  },
+  {
+    // These Node runners also contain callbacks executed in the browser by Playwright.
+    files: ['e2e/accessibility.mjs', 'e2e/responsive.mjs'],
+    languageOptions: {
+      globals: {
+        document: 'readonly',
+        window: 'readonly',
+        innerWidth: 'readonly',
+        innerHeight: 'readonly',
+        getComputedStyle: 'readonly',
+      },
+    },
+  },
+  {
     files: ['**/*.{js,jsx}'],
     extends: [
       js.configs.recommended,

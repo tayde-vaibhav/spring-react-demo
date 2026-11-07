@@ -5,6 +5,7 @@
 import { performance } from 'node:perf_hooks'
 import { setTimeout as delay } from 'node:timers/promises'
 import { isDeepStrictEqual } from 'node:util'
+import { QaCounter } from './support/qa-counter.mjs'
 
 const origin = 'http://localhost:8080'
 const listPath = '/api/v1/products?page=0&size=20&sort=id,asc'
@@ -13,8 +14,8 @@ const durationMs = 60_000
 const thinkTimeMs = 1_000
 const cookies = new Map()
 const latencies = []
-const statuses = {}
-const errors = {}
+const statuses = new QaCounter()
+const errors = new QaCounter()
 const perWorker = Array(virtualUsers).fill(0)
 let baseline
 let expectedPage
@@ -29,7 +30,7 @@ let loadElapsedMs = 0
 class QaError extends Error {}
 function check(condition, code) { if (!condition) throw new QaError(code) }
 function safeError(error) { return error instanceof QaError ? error.message : 'QA_REQUEST_OR_RUNNER_FAILURE' }
-function tally(bucket, key) { bucket[key] = (bucket[key] || 0) + 1 }
+function tally(bucket, key) { bucket.increment(key) }
 function cookieHeader() { return [...cookies].map(([key, value]) => `${key}=${value}`).join('; ') }
 function percentile(sorted, fraction) {
   return sorted.length ? sorted[Math.max(0, Math.ceil(sorted.length * fraction) - 1)] : null
@@ -130,13 +131,13 @@ try {
   const start = performance.now()
   const deadline = start + durationMs
   timer = setInterval(() => console.log(JSON.stringify({ stage, elapsedSeconds: Math.round((performance.now() - start) / 1000),
-    requests: latencies.length, errors: Object.values(errors).reduce((a, b) => a + b, 0) })), 20_000)
+    requests: latencies.length, errors: errors.total() })), 20_000)
   const settled = await Promise.allSettled(Array.from({ length: virtualUsers }, (_, index) => worker(index, deadline)))
   loadElapsedMs = performance.now() - start
   clearInterval(timer)
   check(settled.every(result => result.status === 'fulfilled'), 'QA_WORKER_FAILURE')
   check(!stop && loadElapsedMs >= durationMs && perWorker.every(count => count > 0), 'QA_LOAD_INTERRUPTED')
-  check(Object.keys(errors).length === 0, 'QA_LOAD_ERRORS')
+  check(errors.size === 0, 'QA_LOAD_ERRORS')
 } catch (error) {
   failure = { stage, code: safeError(error) }
   console.log(JSON.stringify({ failure }))
@@ -158,7 +159,7 @@ try {
 }
 
 const sorted = [...latencies].sort((a, b) => a - b)
-const failedRequests = Object.values(errors).reduce((a, b) => a + b, 0)
+const failedRequests = errors.total()
 const rounded = value => value === null ? null : Number(value.toFixed(2))
 console.log(JSON.stringify({ item: 'G2', status: failure ? 'FAILED' : 'PASSED',
   virtualUsers, elapsedSeconds: rounded(loadElapsedMs / 1000), requests: latencies.length,

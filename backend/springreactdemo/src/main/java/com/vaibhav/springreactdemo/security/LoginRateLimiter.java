@@ -14,7 +14,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 @Component
-public class LoginRateLimiter {
+public final class LoginRateLimiter {
 
     private static final int MAX_ATTEMPTS = 5;
     private static final int MAX_CLIENTS = 10_000;
