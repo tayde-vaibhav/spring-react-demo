@@ -133,7 +133,7 @@
 							<failOnError>true</failOnError>
 							<timeout>180000</timeout>
 							<xmlOutput>true</xmlOutput>
-							<htmlOutput>true</htmlOutput>
+							<htmlOutput>false</htmlOutput>
 							<outputDirectory>${project.build.directory}/spotbugs</outputDirectory>
 							<xmlOutputDirectory>${project.build.directory}/spotbugs</xmlOutputDirectory>
 							<plugins>
