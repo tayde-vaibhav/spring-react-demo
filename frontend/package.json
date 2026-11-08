@@ -5,6 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
+    "start": "node server/start.mjs",
     "build": "tsc --noEmit && vite build",
     "lint": "eslint .",
     "lint:security": "eslint . --config eslint.security.config.js --max-warnings 0",
@@ -16,6 +17,7 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@emotion/cache": "^11.14.0",
     "@emotion/react": "^11.14.0",
     "@emotion/styled": "^11.14.1",
     "@mui/icons-material": "^9.5.0",
