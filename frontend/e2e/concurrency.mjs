@@ -5,6 +5,7 @@
 // with other writers. No packages, browsers, or service changes are required.
 import { randomUUID } from 'node:crypto'
 import { isDeepStrictEqual } from 'node:util'
+import { QaCounter } from './support/qa-counter.mjs'
 
 const origin = 'http://localhost:8080'
 const scope = `qa-g1-${randomUUID()}`
@@ -12,7 +13,7 @@ const fields = ['name', 'description', 'category', 'price', 'stock', 'tags', 'sp
 const cookies = new Map()
 const attemptedNames = new Set()
 const knownIds = new Set()
-const metrics = { createStatuses: {}, updateStatuses: {}, rounds: [], deleted: 0,
+const metrics = { createStatuses: new QaCounter(), updateStatuses: new QaCounter(), rounds: [], deleted: 0,
   csrfPairsChecked: 0, csrfCookieDeletions: 0 }
 let baseline
 let writesAttempted = false
@@ -31,7 +32,7 @@ function writable(product) {
 function owned(product) {
   return product?.category === scope && attemptedNames.has(product?.name)
 }
-function tally(bucket, status) { bucket[status] = (bucket[status] || 0) + 1 }
+function tally(bucket, status) { bucket.increment(status) }
 
 function cookieHeader() {
   return [...cookies].map(([k, v]) => `${k}=${v}`).join('; ')

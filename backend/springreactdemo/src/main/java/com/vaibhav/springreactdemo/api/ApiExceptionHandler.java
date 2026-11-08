@@ -1,6 +1,7 @@
 package com.vaibhav.springreactdemo.api;
 
 import java.net.URI;
+import java.util.Locale;
 import java.util.Map;
 import java.util.stream.Collectors;
 
@@ -98,14 +99,18 @@ public class ApiExceptionHandler {
 
     @ExceptionHandler(Exception.class)
     public ProblemDetail handleUnexpected(Exception exception, HttpServletRequest request) {
-        log.error("Unhandled API exception for {}", request.getRequestURI(), exception);
+        // Do not attach the raw Throwable: its message/cause chain can contain request data or secrets.
+        // The exception type was already present in the old stack trace; collect no additional request fields.
+        log.error("Unhandled API exception for {} ({})",
+                LogSanitizer.singleLine(request.getRequestURI()),
+                LogSanitizer.singleLine(exception.getClass().getName()));
         return problem(HttpStatus.INTERNAL_SERVER_ERROR, "Internal server error",
                 "An unexpected error occurred.", request);
     }
 
     private ProblemDetail problem(HttpStatus status, String title, String detail, HttpServletRequest request) {
         ProblemDetail problem = ProblemDetail.forStatusAndDetail(status, detail);
-        problem.setType(URI.create("urn:problem:" + title.toLowerCase().replace(' ', '-')));
+        problem.setType(URI.create("urn:problem:" + title.toLowerCase(Locale.ROOT).replace(' ', '-')));
         problem.setTitle(title);
         problem.setInstance(URI.create(request.getRequestURI()));
         return problem;

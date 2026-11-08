@@ -2,6 +2,7 @@ import type { Locator, Page } from '@playwright/test'
 import type { ProblemDetail, Product, ProductRequest } from '../src/api/client'
 import { test as base, expect, credentialsFor } from './support/fixtures'
 import { QaApi, QaFailure, UI_ORIGIN } from './support/qa-api'
+import { formLabelPattern } from './support/form-label'
 
 // This item uses the frontend proxy for both UI and guarded cleanup traffic.
 const test = base.extend({
@@ -13,7 +14,7 @@ const test = base.extend({
 })
 
 function field(page: Page, label: string): Locator {
-  return page.getByLabel(new RegExp(`^${label}(?:\\s*\\*)?\\s*$`))
+  return page.getByLabel(formLabelPattern(label))
 }
 
 async function fieldError(page: Page, label: string, message?: string) {

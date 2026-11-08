@@ -10,6 +10,7 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import com.vaibhav.springreactdemo.product.validation.ValidSpecs;
+import com.vaibhav.springreactdemo.common.CollectionSnapshots;
 
 public record ProductRequest(
         @NotBlank @Size(max = 200) String name,
@@ -20,4 +21,19 @@ public record ProductRequest(
         @Size(max = 20) List<@NotBlank @Size(max = 50) String> tags,
         @Size(max = 30) @ValidSpecs Map<@NotBlank @Size(max = 50) String, Object> specs,
         @NotNull Boolean active) {
+
+    public ProductRequest {
+        tags = CollectionSnapshots.list(tags);
+        specs = CollectionSnapshots.specs(specs);
+    }
+
+    @Override
+    public List<String> tags() {
+        return CollectionSnapshots.list(tags);
+    }
+
+    @Override
+    public Map<String, Object> specs() {
+        return CollectionSnapshots.specs(specs);
+    }
 }

@@ -8,6 +8,7 @@ import {
 import ArrowBackRoundedIcon from '@mui/icons-material/ArrowBackRounded'
 import SaveRoundedIcon from '@mui/icons-material/SaveRounded'
 import { api, ApiError, type Product, type ProductRequest, type ProductUpdateRequest } from '../api/client'
+import { isValidProductPrice } from '../validation/productPrice'
 
 interface ProductFormValues {
   name: string
@@ -148,7 +149,7 @@ function validate(values: ProductFormValues): { errors: FieldErrors; formError: 
   if (!values.category.trim()) errors.category = 'Enter a category.'
   else if (values.category.length > 100) errors.category = 'Category must be 100 characters or fewer.'
   if (values.description.length > 2000) errors.description = 'Description must be 2,000 characters or fewer.'
-  if (!/^\d{1,12}(\.\d{1,2})?$/.test(values.price) || Number(values.price) <= 0) errors.price = 'Enter a positive amount with up to 12 whole digits and 2 decimal places.'
+  if (!isValidProductPrice(values.price)) errors.price = 'Enter a positive amount with up to 12 whole digits and 2 decimal places.'
   if (!/^\d+$/.test(values.stock) || Number(values.stock) < 0 || Number(values.stock) > 2_147_483_647 || !Number.isSafeInteger(Number(values.stock))) errors.stock = 'Enter a whole number between 0 and 2,147,483,647.'
 
   const tags = parseTags(values.tags)
