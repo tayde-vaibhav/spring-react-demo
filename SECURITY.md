@@ -122,8 +122,15 @@ tests reported expected context-startup errors with no skips. A temporary
 writable artifact-cache copy resolved the harness's read-only file-lock issue;
 the original cache and isolation guards were unchanged. No downloads, Docker
 commands or development-service changes were needed. User-committed fresh-clone
-proof is now the only remaining I2 acceptance check; the working-tree result
-and negative check alone do not complete I2.
+proof subsequently passed for `9e38c62`: offline full verification in a clean
+local Git clone passed 296 tests with no failures/errors/skips and no database
+or development-credential/configuration environment variables in the child.
+Owned live-Mongo isolation/persistence tests passed and all test containers
+cleaned up; development Mongo identity/state/start time/health were unchanged.
+Only the reviewed standard local Unix-socket Testcontainers discovery-cache
+entry was accepted; unreviewed overrides remain blocked. No downloads or
+development-service changes occurred. This completes I2 without removing any
+existing assertions or weakening the isolation guards.
 
 For QA checklist sections A–C, the login limiter may temporarily use a
 two-minute window by setting `LOGIN_RATE_LIMIT_WINDOW=2m` when starting the
