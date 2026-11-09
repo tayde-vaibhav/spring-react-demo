@@ -45,10 +45,14 @@ Thumbs.db
 jar.txt
 logs/
 
-# Documentation: publish QA assets only.
+# Documentation: publish reviewed QA assets and architecture diagrams only.
 # Keep private command references and AI prompts excluded.
 docs/*
 !docs/qa/
+!docs/architecture/
+docs/architecture/*
+!docs/architecture/application-architecture.md
+!docs/architecture/backend-test-isolation.md
 
 # Exclude QA credentials and authentication state.
 docs/qa/**/.env
