@@ -11,15 +11,15 @@ I1 traceability is complete at commit `0cf1894`: all 44 primary A-H checklist
 items were mapped, with 23 having committed suite/runner coverage, 15 partial
 and 6 manual/ad-hoc only. Those classifications are not fresh test results,
 coverage percentages or a claim that every checklist assertion is automated.
-I2-I8 execution remains individually gated.
+I2 and I3 are now complete; I4-I8 execution remains individually gated.
 
 I2 implementation and the listed documentation updates were approved on
 2026-11-09. The candidate now adds Boot-managed, test-scoped container support,
 imports owned service connections into all full Boot contexts, removes the
 external test-URI prerequisite, and adds isolation/real-persistence regressions.
-Existing assertions and mocks are preserved. Runtime isolation and actual
-unavailable-Docker acceptance now pass as detailed below. Full I2 is not yet
-PASSED: only fresh-clone acceptance using the user's committed candidate remains.
+Existing assertions and mocks are preserved. Runtime isolation, actual
+unavailable-Docker acceptance and fresh-clone verification of the user's
+committed candidate `9e38c62` now pass as detailed below. I2 status: PASSED.
 
 I2 verification stage 1 passed on 2026-11-09: a bounded Maven Central-only
 focused build completed successfully in 43.414 seconds and ran 21 Docker-free
@@ -78,8 +78,8 @@ passed. Packaging and JaCoCo HTML/XML completed. Five test containers started;
 cleanup confirmed none remaining and unchanged development Mongo identity/state/
 start time/health. Both prior failures remain recorded. The actual unavailable-
 Docker check subsequently passed as detailed below. Genuine user-committed
-fresh-clone verification remains the final I2 gate; full I2 is not complete
-merely because the working tree passed.
+fresh-clone verification also subsequently passed; it is separate evidence,
+not a relabeling of the working-tree result.
 
 The unavailable-Docker read-only isolation preflight completed: Bubblewrap
 0.11.1 and unshare 2.41.3 are installed, required Bubblewrap flags are present,
@@ -197,8 +197,8 @@ real runtime logs, captured requests or credential-bearing artifacts.
 
 | Item | Planned work | Gate |
 | --- | --- | --- |
-| I2 | Implement and prove the backend isolation prerequisite above. | Show exact files/tests/side effects first; dependency, image, container and failure-path approvals remain explicit. |
-| I3 | Report actual JaCoCo coverage for relevant service/controller/security classes/packages. Add JaCoCo only if absent. Propose 80% where realistic, otherwise the measured current level rounded down with metrics/scope stated. | Threshold enforcement needs separate approval; do not exclude code just to meet a number. |
+| I2 | Completed: owned-container isolation, missing-Docker failure and fresh-clone full verification of user commit 9e38c62. | PASSED; existing dependency/image/container/service approval boundaries remain in force for future runs. |
+| I3 | Completed: baseline measured and approved bundle/class/security-package gates implemented without exclusions, then verified in the full working-tree build. | PASSED: 296 tests and actual jacoco-check execution passed; future threshold changes need approval. |
 | I4 | Present exact missing security test cases, then implement approved MockMvc/integration regressions. Priorities include alg=none, actual login-to-429, generic credential-error equivalence, injection edge cases and full CORS preflights/header checks. | Show the test list before writing. Preserve existing access-matrix, CSRF and strict unknown-field tests. |
 | I5 | Measure Vitest coverage and propose approved MSW-backed component tests for auth/routes/roles/list/form/conflict behavior. | Component coverage is distinct from browser coverage; dependencies and thresholds need their approvals. |
 | I6 | Implement serving-mode separation, prerequisite validation and the full three-run stability exercise. | Agree clean-state, service ownership/handover and limiter strategy before execution. |
@@ -315,10 +315,63 @@ tests. Keep raw Maven output out of the report and inspect sanitized evidence
 only. This scoped negative check is not another full clean verify. No downloads,
 Docker commands/container starts or development service changes are permitted;
 never stop Docker/development Mongo or weaken host policy for this check.
-Next gate: the user manually commits the intended I2 candidate, followed by
-separate approval for a genuine fresh-clone full verify with only local Docker
-and no database environment variables. Do not create an agent commit or call a
-dirty export a fresh clone. The 28-check focused suite, 296-test working-tree
-full build and actual unavailable-Docker check all passed. Fresh-clone proof
-alone remains pending; I3 has not started. See
+The user manually committed the candidate as
+9e38c620675465b4e6df3f9217ced6152a31ec9e and approved I2-FRESH-CLONE. A genuine
+local Git clone of that exact commit started clean without copied environment,
+build-output or ignored QA files. A strict initial preflight stopped before
+cloning because Testcontainers' user discovery-cache file now existed. A
+read-only review confirmed its only entry was the standard local Unix-socket
+strategy; the temporary harness accepts that exact known entry and still
+rejects all unreviewed overrides. No user configuration was changed.
+
+Fresh-clone offline clean verify PASSED: 296 tests, 0 failures/errors/skips;
+Maven time 36.859 seconds, overall runner time 47.9 seconds. The child had no
+database/development-credential/configuration environment overrides. Live ping,
+owned-endpoint isolation and real product persistence/auditing/version/conflict/
+cleanup regressions passed; JAR/repackaging and JaCoCo HTML/XML completed.
+Five owned test containers started, zero new Testcontainers resources remained,
+and development Mongo identity/state/start time/health were unchanged. Both
+the original source checkout (only the independent ignore-file edit) and the
+clone's tracked/untracked status were preserved. No dependency/image downloads,
+application restarts, development-volume operations or agent commits occurred.
+The temporary clone retains its build/coverage evidence for the next review.
+
+I2 is PASSED in full: the 28-check focused suite, 296-test working-tree build,
+actual unavailable-Docker check and user-committed fresh-clone build all passed.
+I3 read-only analysis of that report subsequently passed: overall lines 94.35%
+and branches 83.46%; three services combined 87.50%/77.59%; three controllers
+combined 100%/91.67%; security package 93.49%/75.56%. The role groups overlap
+the security package. Exact class counters identify wholly uncovered
+ProductService getById/getStats methods and unexecuted rate-limiter cleanup;
+high aggregate coverage is not a substitute for testing those behaviors.
+
+The user separately approved the proposed thresholds and README/roadmap
+documentation. The candidate now adds jacoco-check after the report execution
+in verify, explicitly halting on failures. Rules: backend BUNDLE line/branch
+>=80%; CLASS line >=80% for each of the six named services/controllers;
+security PACKAGE line >=80%, branch >=75% (its measured branch result rounded
+down). No classes are excluded from bundle analysis, no tests are weakened,
+and no production/runtime behavior changes. New service/controller classes must
+be added to the explicit class-rule list. Class/package matching conventions
+were checked against the cached JaCoCo version's metadata, without downloads.
+
+No Maven build, tests, container or service operations ran during configuration
+implementation. After the diff and separate runtime approval, full offline
+working-tree clean verify PASSED: 296 tests, 0 failures/errors/skips, Maven time
+36.694 seconds and overall runner time 47.6 seconds. Maven actually executed
+jacoco:check (jacoco-check) and reported all coverage checks met; packaging and
+JaCoCo HTML/XML also completed. Overall line/branch coverage remains
+94.35%/83.46%, security package 93.49%/75.56%. Database/development credentials
+and configuration overrides were absent from the child environment.
+Five test containers started, zero new resources remained, and development
+Mongo identity/state/start time/health were unchanged. The source HEAD/status
+and contents of existing modified files were unchanged by verification.
+No downloads, existing-service changes, production/test-source edits, Git
+staging or agent commits occurred. This is verification of the new working-tree
+quality configuration, distinct from the I2 fresh-clone baseline of 9e38c62.
+
+I3 status: PASSED in full. Next gate: approve the I4 read-only security-regression
+gap assessment and exact proposed test list for uncovered C1-C8 checks. Show
+that list and obtain implementation approval before writing tests; preserve
+all existing assertions. No I4 implementation or execution has started. See
 [backend test setup and pending evidence](README.md#backend-tests-and-coverage).
