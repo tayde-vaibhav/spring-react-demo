@@ -1,8 +1,21 @@
 # spring-react-demo
+
 ## Structure
+
 - backend/ — Spring Boot API
 - frontend/ — React application
 - docs/ — project notes and decisions
+
+## Architecture and QA documentation
+
+- [Application architecture](docs/architecture/application-architecture.md) — React frontend, Spring Boot API, security boundaries, and MongoDB persistence.
+- [Backend test isolation](docs/architecture/backend-test-isolation.md) — Testcontainers-managed MongoDB, isolation guards, and Maven coverage enforcement.
+- [QA Evidence Index](docs/qa/README.md) — Historical QA reports, security assessments, verification evidence, and supporting tooling.
+- [Test Codification Plan](TEST-CODIFICATION-PLAN.md) — Test coverage objectives, implementation scope, and remaining work.
+- [Security Guidance](SECURITY.md) — Authentication, cookie security, development safeguards, and documented limitations.
+
+The QA reports include both completed verification and historical findings or proposals. Consult each report's recorded scope and limitations before interpreting its results.
+
 ## Setup
 
 For the backend's MongoDB, environment-variable, and `dev` profile setup, use
@@ -286,11 +299,11 @@ The approved `jacoco-check` execution is configured after report generation in
 the `verify` phase, with `haltOnFailure=true`. It checks covered ratios and fails
 verification below these limits; no report/analysis exclusions are configured:
 
-| Scope | Minimum line coverage | Minimum branch coverage |
-| --- | ---: | ---: |
-| Entire backend bundle | 80% | 80% |
-| Each explicitly listed service/controller class | 80% | Not separately gated |
-| `com.vaibhav.springreactdemo.security` package | 80% | 75% |
+| Scope                                           | Minimum line coverage | Minimum branch coverage |
+| ----------------------------------------------- | --------------------: | ----------------------: |
+| Entire backend bundle                           |                   80% |                     80% |
+| Each explicitly listed service/controller class |                   80% |    Not separately gated |
+| `com.vaibhav.springreactdemo.security` package  |                   80% |                     75% |
 
 The class rule names `ProductService`, `AuthService`,
 `DatabaseUserDetailsService`, `ProductController`, `AuthController` and the
@@ -303,12 +316,12 @@ security class has 80% line coverage.
 
 Measured baseline from the 296-test fresh-clone build of `9e38c62`:
 
-| Scope | Line coverage | Branch coverage |
-| --- | ---: | ---: |
-| Entire backend | 94.35% (634/672) | 83.46% (222/266) |
-| Three services combined | 87.50% (98/112) | 77.59% (45/58) |
-| Three controllers combined | 100% (57/57) | 91.67% (11/12) |
-| Security package | 93.49% (244/261) | 75.56% (68/90) |
+| Scope                      |    Line coverage |  Branch coverage |
+| -------------------------- | ---------------: | ---------------: |
+| Entire backend             | 94.35% (634/672) | 83.46% (222/266) |
+| Three services combined    |  87.50% (98/112) |   77.59% (45/58) |
+| Three controllers combined |     100% (57/57) |   91.67% (11/12) |
+| Security package           | 93.49% (244/261) |   75.56% (68/90) |
 
 These role groups overlap the security package and must not be added together.
 The weakest selected class, `ProductService`, has 80.56% line coverage; its
