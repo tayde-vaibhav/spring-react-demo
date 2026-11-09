@@ -44,4 +44,31 @@ pnpm-debug.log*
 Thumbs.db
 jar.txt
 logs/
-docs/
+
+# Documentation: publish QA assets only.
+# Keep private command references and AI prompts excluded.
+docs/*
+!docs/qa/
+
+# Exclude QA credentials and authentication state.
+docs/qa/**/.env
+docs/qa/**/.env.*
+docs/qa/**/*secret*
+docs/qa/**/*credential*
+docs/qa/**/*token*
+docs/qa/**/secrets/
+docs/qa/**/.auth/
+docs/qa/**/storage-state*.json
+docs/qa/**/auth-state*.json
+
+# Exclude generated QA artifacts.
+docs/qa/**/node_modules/
+docs/qa/**/target/
+docs/qa/**/coverage/
+docs/qa/**/test-results/
+docs/qa/**/playwright-report/
+docs/qa/**/traces/
+docs/qa/**/videos/
+docs/qa/**/screenshots/
+docs/qa/**/*.log
+docs/qa/**/*.trace.zip
