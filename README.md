@@ -250,8 +250,18 @@ The temporary harness needed explicit environment clearing because Bubblewrap
 retains PWD, and a writable copy of cached dependencies because Maven could not
 acquire its file lock on a read-only cache. Host caches remained unchanged;
 there were no downloads, Docker commands or development-service changes.
-Fresh-clone proof is the only remaining I2 acceptance check. It must use a
-user-committed candidate; the working-tree pass is not that proof.
+Fresh-clone proof subsequently PASSED for user commit `9e38c62`: a genuine local
+Git clone started clean, without copied runtime environment files, build outputs
+or ignored QA evidence. Java 25 ran offline `clean verify` using cached tooling,
+with database and development-credential/configuration environment variables
+absent from the child. All 296 tests passed with zero failures/errors/skips;
+Maven time was 36.859 seconds (47.9 seconds overall). Packaging and JaCoCo
+HTML/XML completed, including the live owned-Mongo isolation/persistence tests.
+Five test containers started and zero remained after cleanup. Development Mongo
+identity/state/start time/health and the original checkout were unchanged; the
+clone also remained clean apart from ignored build outputs. No downloads,
+development-service restarts or source changes were needed. I2 is complete;
+the I3 coverage baseline and approved check configuration are described below.
 These test-only changes do not require restarting the running application.
 
 JaCoCo `0.8.16` collects coverage in Maven's test JVMs and generates HTML and
@@ -266,10 +276,57 @@ Report paths, relative to the backend module:
 The first run may download the plugin and its dependencies from Maven Central.
 All reports stay under the Git-ignored `target/` directory. The agent writes
 to a file, not a network listener; it does not attach to the running backend,
-so no backend restart is required. No minimum coverage gate or report
-exclusions are configured initially. Coverage shows executed lines/branches,
+so no backend restart is required. Coverage shows executed lines/branches,
 not assertion quality, and does not include browser activity against the
 separately running application.
+
+### Backend coverage gates (I3)
+
+The approved `jacoco-check` execution is configured after report generation in
+the `verify` phase, with `haltOnFailure=true`. It checks covered ratios and fails
+verification below these limits; no report/analysis exclusions are configured:
+
+| Scope | Minimum line coverage | Minimum branch coverage |
+| --- | ---: | ---: |
+| Entire backend bundle | 80% | 80% |
+| Each explicitly listed service/controller class | 80% | Not separately gated |
+| `com.vaibhav.springreactdemo.security` package | 80% | 75% |
+
+The class rule names `ProductService`, `AuthService`,
+`DatabaseUserDetailsService`, `ProductController`, `AuthController` and the
+legacy `AppTestController` individually. These classes span feature packages;
+there are no separate service/controller packages. Add new service/controller
+classes to the class-rule list when introducing them. Rule-level includes select
+where the extra minimum applies; they do not exclude other classes from bundle
+analysis. The security package limit is package-wide, not a claim that every
+security class has 80% line coverage.
+
+Measured baseline from the 296-test fresh-clone build of `9e38c62`:
+
+| Scope | Line coverage | Branch coverage |
+| --- | ---: | ---: |
+| Entire backend | 94.35% (634/672) | 83.46% (222/266) |
+| Three services combined | 87.50% (98/112) | 77.59% (45/58) |
+| Three controllers combined | 100% (57/57) | 91.67% (11/12) |
+| Security package | 93.49% (244/261) | 75.56% (68/90) |
+
+These role groups overlap the security package and must not be added together.
+The weakest selected class, `ProductService`, has 80.56% line coverage; its
+`getById` and `getStats` methods are uncovered. `LoginRateLimiter` has 73.68%
+line coverage and 68.18% branch coverage, including unexecuted expired-client
+cleanup. These gaps remain visible, not excluded. The initial security branch
+gate uses its measured 75.56% rounded down to 75%; raising it needs further
+tests and approval.
+
+The configuration was added after that baseline build and then verified in a
+separately approved offline working-tree `clean verify`: 296 tests, zero
+failures/errors/skips, Maven time 36.694 seconds (47.6 seconds overall). Maven
+executed `jacoco:check (jacoco-check)` and reported that all coverage checks were
+met. Current overall coverage remains 94.35% lines/83.46% branches; security
+remains 93.49%/75.56%. Packaging and HTML/XML reports completed. All owned test
+containers cleaned up, development Mongo state was unchanged, and no downloads
+or existing-service changes were needed. This verifies the new working-tree
+gate configuration; the earlier fresh-clone baseline did not contain it.
 
 ## Collection ownership and regression checks
 
