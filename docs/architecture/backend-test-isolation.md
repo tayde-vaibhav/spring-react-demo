@@ -50,7 +50,7 @@ flowchart TB
     JUnit --> JaCoCo
     JaCoCo --> Gate
 
-    Context --> Cleanup
+    Context -->|"Context lifecycle ends"| Cleanup
 ```
 
 ## Isolation guarantees and boundaries
