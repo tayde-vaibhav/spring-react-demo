@@ -1,0 +1,46 @@
+name: Backend CI
+
+on:
+  pull_request:
+    branches:
+      - main
+    paths:
+      - "backend/springreactdemo/**"
+      - ".github/workflows/backend-ci.yml"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: backend-ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  backend-verify:
+    name: Backend tests and JaCoCo
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+
+    defaults:
+      run:
+        working-directory: backend/springreactdemo
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          persist-credentials: false
+
+      - name: Set up Java 25
+        uses: actions/setup-java@de7274f081f381c8f8158605e0321c36c376e2e6
+        with:
+          distribution: temurin
+          java-version: "25"
+          cache: maven
+          cache-dependency-path: backend/springreactdemo/pom.xml
+
+      - name: Verify Docker availability
+        run: docker info --format '{{.ServerVersion}}'
+
+      - name: Run backend tests and JaCoCo checks
+        run: bash ./mvnw --batch-mode --no-transfer-progress clean verify
