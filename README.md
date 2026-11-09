@@ -164,16 +164,95 @@ npm run test -- server src/style-cache.test.ts
 
 ## Backend tests and coverage
 
-Before running backend tests, export `MONGODB_TEST_URI` for a dedicated test
-database, never the development database. The `test` profile requires this
-variable with no fallback to `MONGODB_URI`; use that profile only for automated
-tests. Do not put credentials in commands or commit them to this repository.
+Backend integration tests use Spring-managed Testcontainers, not an external
+Mongo database. Use Java 25 and an accessible local Docker daemon; a separate
+running backend, Compose Mongo, development credentials and database environment
+variables are not prerequisites. Do not export `MONGODB_TEST_URI` for these
+tests: there is no external-database mode or fallback to `MONGODB_URI`.
+The `test` profile is for automated tests only, never application launches.
 
 From `backend/springreactdemo/`, run:
 
 ```bash
 ./mvnw clean verify
 ```
+
+Test-scoped `spring-boot-testcontainers` `4.1.2` and
+`testcontainers-mongodb` `2.0.5` are managed by the existing Boot parent.
+[The shared test configuration](backend/springreactdemo/src/test/java/com/vaibhav/springreactdemo/support/MongoContainerTestConfiguration.java)
+imports a typed `@ServiceConnection` into every full Boot test context,
+including the dev-profile API-docs regression. Each distinct cached context
+owns its Mongo `7.0.45` container with reuse disabled, temporary container
+storage and a random port bound to `127.0.0.1`, not the Compose service on
+27017 or its named volume. Spring owns container start/stop alongside the
+context lifecycle; plain mocked/unit contexts remain Docker-free.
+
+[A test-classpath initializer](backend/springreactdemo/src/test/java/com/vaibhav/springreactdemo/support/MongoTestIsolationInitializer.java)
+masks external Mongo URI/database properties and rejects missing owned-container
+wiring. A client-settings guard checks the owned endpoint after standard Boot
+customization. The tests include harmless external-URI override sentinels,
+an actual ping, and a qa-owned product round trip covering Decimal128, auditing,
+version conflicts and finally-block cleanup. They must not contact development
+Mongo or silently skip integration tests when Docker is unavailable.
+
+First use can download Maven dependencies and Docker images, including
+`mongo:7.0.45`, the `testcontainers/ryuk:0.14.0` cleanup helper and any enabled
+Testcontainers startup-check image (the pinned core uses `alpine:3.17`).
+Ryuk requires Docker-socket access and a temporary helper port. Image pulls,
+Docker access and owned resource startup/cleanup still require the applicable
+agent QA approval; this command is documentation, not standing authorization.
+Use the default local Docker setup, without remote discovery/host overrides or
+custom Mongo-client/settings beans. Those configurations are not supported by
+this test setup and need a separate isolation review. Do not disable cleanup
+or enable reusable containers. Missing Docker should fail with an actionable
+error, not fall back to an external database.
+
+I2 verification status: Maven's focused build passed on 2026-11-09, including
+the test-compilation phase and 21 Docker-free guard checks (zero failures,
+errors or skips). The subsequent no-database-environment `clean verify` failed:
+289 tests, zero assertion failures, 25 application-context errors. The test
+guard's injected provider excludes the guard itself, so its last-customizer
+check rejects otherwise valid Boot contexts. The approved test-only correction
+now obtains the complete ordered provider from the bean factory, without
+removing the order/owned-endpoint checks. Three Docker-free Spring-wiring
+regressions were added for self inclusion, a trailing customizer and non-owned
+settings. The provider-only focused Maven rerun passed: 24 checks, zero failures,
+errors or skips, including all three wiring regressions; Maven time 7.688 seconds.
+No Docker was accessed during that rerun. The earlier 21-check result predates
+this correction. The corrected full rerun still FAILED: 292 tests, zero
+assertion failures, 25 context errors, Maven time 27.467 seconds. Boot's two
+unordered Mongo metrics customizers tie with the guard at lowest precedence;
+the focused fixtures omitted that auto-configuration chain. The approved
+test-only correction now moves only the guard definition after ordinary
+definitions, before bean creation; it rejects missing/already-created guards.
+The final-order/owned-endpoint checks and native customizers are unchanged.
+Four additional Docker-free regressions cover the actual Actuator metrics
+chain/listeners, later-customizer rejection and registration metadata safety.
+The registration correction's focused build now passes: 28 tests, zero failures,
+errors or skips, Maven time 9.806 seconds. All four new regressions passed,
+including native metrics listener preservation and later-customizer rejection;
+no Docker was accessed. The latest working-tree full `clean verify` subsequently
+PASSED: 296 tests, zero failures/errors/skips, Maven time 41.129 seconds, with
+database environment variables removed. Actual owned-container ping/endpoint
+override isolation and the product persistence/auditing/version/conflict/cleanup
+regressions passed. Packaging and JaCoCo HTML/XML reports completed. Five test
+containers started; cleanup confirmed zero remaining and unchanged development
+Mongo container state. Earlier full failures remain in the history rather than
+being relabeled. The actual unavailable-Docker check subsequently PASSED: a
+scoped offline integration run in private user/PID/network namespaces, without
+Docker sockets or database/credential environment variables, exited Maven 1
+with the exact actionable Docker-required message. Both integration tests
+reported expected context-startup errors (2 tests, 0 assertion failures,
+2 errors, 0 skipped), rather than silently skipping or using another database.
+The successful negative-check runner exited 0; Maven elapsed time was 13.4
+seconds. This is expected-failure evidence, not a second successful full build.
+The temporary harness needed explicit environment clearing because Bubblewrap
+retains PWD, and a writable copy of cached dependencies because Maven could not
+acquire its file lock on a read-only cache. Host caches remained unchanged;
+there were no downloads, Docker commands or development-service changes.
+Fresh-clone proof is the only remaining I2 acceptance check. It must use a
+user-committed candidate; the working-tree pass is not that proof.
+These test-only changes do not require restarting the running application.
 
 JaCoCo `0.8.16` collects coverage in Maven's test JVMs and generates HTML and
 XML reports during `verify`. Java 25 is supported (see the
@@ -224,7 +303,7 @@ JSON create/update contracts, 400 field errors, unknown-field rejection, 409
 conflicts, and an offline Mongo converter round-trip for Decimal128, timestamps,
 version and roles. They do not verify live Mongo writes, auditing execution or
 authenticated HTTP flows. Existing tests are unchanged. For the full suite,
-export the isolated `MONGODB_TEST_URI` and use `./mvnw clean verify` as above;
+use local Docker and `./mvnw clean verify` as above;
 the focused command is not a substitute for that build.
 
 ## Stable errors and safe error logging
@@ -269,8 +348,8 @@ search parameters, and stable error/log contracts. The security matrix creates
 isolated test/dev Spring MVC contexts with real security beans, mocked
 persistence and ephemeral in-memory signing/CSRF material. It does not load
 application YAML, create a Mongo client, contact running apps or use real login
-credentials. It does not replace full Boot/Mongo verification with the dedicated
-`MONGODB_TEST_URI`, or approved live API/browser QA.
+credentials. It does not replace full Boot/Mongo verification with owned
+Testcontainers, or approved live API/browser QA.
 
 Unsafe cookie-authenticated requests require a matching nonblank CSRF cookie
 and header. Empty and whitespace-only pairs are rejected with 403 before any
@@ -306,7 +385,7 @@ running tests:
 ```
 
 For a clean build, all existing tests, coverage and analysis together, first
-export the dedicated `MONGODB_TEST_URI` described above, then run:
+prepare the local Docker prerequisites described above, then run:
 
 ```bash
 ./mvnw -Pstatic-analysis clean verify
@@ -467,8 +546,8 @@ every secret placeholder before starting the backend:
 
 - Set `MONGODB_ROOT_PASSWORD` to a strong, URL-safe local password. The
   `MONGODB_URI` value is composed from the variables above it in the example;
-  keep credentials in sync if you customize the URI. Keep `MONGODB_TEST_URI`
-  pointed at a separate test database, never the development database.
+  keep credentials in sync if you customize the URI. Automated backend tests
+  instead use owned Testcontainers and do not require a database URI variable.
 - Generate a unique `JWT_SECRET` privately, for example with
   `openssl rand -base64 48`, and store it only in your local secret environment.
   The signing key must contain at least 32 UTF-8 bytes. Do not paste the value

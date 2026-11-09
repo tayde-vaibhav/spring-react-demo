@@ -8,15 +8,16 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
+import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
 import com.vaibhav.springreactdemo.user.UserRepository;
+import com.vaibhav.springreactdemo.support.MongoContainerTestConfiguration;
 
 @SpringBootTest(properties = {
-        "MONGODB_URI=mongodb://localhost:27017/springreactdemo-dev-docs-test",
         "JWT_SECRET=dev-docs-integration-test-signing-key-32-bytes-minimum",
         "DEV_ADMIN_PASSWORD=integration-admin-password",
         "DEV_USER_PASSWORD=integration-user-password",
@@ -25,6 +26,7 @@ import com.vaibhav.springreactdemo.user.UserRepository;
 })
 @AutoConfigureMockMvc
 @ActiveProfiles("dev")
+@Import(MongoContainerTestConfiguration.class)
 class DevApiDocsNotFoundIntegrationTest {
 
     @Autowired

@@ -53,6 +53,9 @@ are lockfile resolutions, not the manifest's semver ranges.
   `spring-boot-starter-oauth2-resource-server`; test dependencies
   `spring-boot-starter-webmvc-test` and `spring-boot-starter-security-test`.
   Starter versions are managed by Spring Boot.
+- Backend integration-test infrastructure: `spring-boot-testcontainers`
+  `4.1.2` and `testcontainers-mongodb` `2.0.5`, both test-scoped and managed
+  by the Boot parent; owned test image `mongo:7.0.45`.
 - OpenAPI: `springdoc-openapi-starter-webmvc-ui` `3.2.0`; development seed data:
   Datafaker `2.7.0`.
 - Backend quality tooling: JaCoCo `0.8.16`; opt-in SpotBugs Maven plugin
@@ -90,14 +93,29 @@ From `backend/springreactdemo/`, after preparing that environment:
 SPRING_PROFILES_ACTIVE=dev ./mvnw spring-boot:run
 ```
 
-For tests/package builds that run tests, export a dedicated `MONGODB_TEST_URI`
-first. The automated `test` profile has no fallback to `MONGODB_URI` and must
-never be used to run the application outside tests. From the backend module:
+For tests/package builds that run tests, use Java 25 and accessible local
+Docker. Full Boot tests import Spring-managed owned Mongo Testcontainers;
+database environment variables and the development Compose database are not
+prerequisites. No external `MONGODB_TEST_URI` mode or `MONGODB_URI` fallback is
+supported. Never use the automated `test` profile to launch the application
+outside tests. From the backend module:
 
 ```bash
 ./mvnw test
 ./mvnw clean verify
 ```
+
+Keep the test-classpath isolation initializer and owned-container import on
+every full Boot test context, including dev-profile docs tests. Preserve
+Docker-free mocked/unit tests. Never connect tests to the dev database, reuse
+containers or disable cleanup. Remote Docker overrides/custom client beans
+require a separate isolation review. Dependency/image downloads, Docker access
+and owned-container startup still need QA approval. The I2 working-tree full
+build passed 296 tests without database environment variables. The actual
+unavailable-Docker check also passed: an isolated offline integration run failed
+with the actionable Docker-required message and no skipped tests. Only
+user-committed fresh-clone proof remains pending for I2. See
+[current test status](README.md#backend-tests-and-coverage).
 
 The backend listens on port `8080` by default. Package it with
 `./mvnw package`. Full `verify` also produces JaCoCo reports under

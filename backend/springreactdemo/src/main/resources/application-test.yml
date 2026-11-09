@@ -2,8 +2,8 @@ spring:
   data:
     mongodb:
       auto-index-creation: false
-  mongodb:
-    uri: ${MONGODB_TEST_URI}
+# Test-classpath configuration supplies an owned Testcontainers service connection.
+# No external database URI or localhost fallback is supported by the test suite.
 app:
   security:
     jwt:
