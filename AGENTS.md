@@ -113,8 +113,10 @@ require a separate isolation review. Dependency/image downloads, Docker access
 and owned-container startup still need QA approval. The I2 working-tree full
 build passed 296 tests without database environment variables. The actual
 unavailable-Docker check also passed: an isolated offline integration run failed
-with the actionable Docker-required message and no skipped tests. Only
-user-committed fresh-clone proof remains pending for I2. See
+with the actionable Docker-required message and no skipped tests. A genuine
+local clone of user commit `9e38c62` subsequently passed offline full verification:
+296 tests, zero failures/errors/skips, packaging and JaCoCo, with no database
+environment variables and complete owned-container cleanup. I2 is complete. See
 [current test status](README.md#backend-tests-and-coverage).
 
 The backend listens on port `8080` by default. Package it with
