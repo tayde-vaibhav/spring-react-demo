@@ -1,0 +1,108 @@
+{
+  "schema": "h2-passive-v1",
+  "complete": true,
+  "imported": 8,
+  "queueRemaining": 0,
+  "coreVersion": "2.17.0",
+  "enabledRules": 62,
+  "placeholders": 7,
+  "alerts": [
+    {
+      "pluginId": "10020",
+      "name": "Missing Anti-clickjacking Header",
+      "risk": 2,
+      "confidence": 2,
+      "url": "http://localhost:5173/login"
+    },
+    {
+      "pluginId": "10020",
+      "name": "Missing Anti-clickjacking Header",
+      "risk": 2,
+      "confidence": 2,
+      "url": "http://localhost:5173/"
+    },
+    {
+      "pluginId": "10038",
+      "name": "Content Security Policy (CSP) Header Not Set",
+      "risk": 2,
+      "confidence": 3,
+      "url": "http://localhost:5173/"
+    },
+    {
+      "pluginId": "10038",
+      "name": "Content Security Policy (CSP) Header Not Set",
+      "risk": 2,
+      "confidence": 3,
+      "url": "http://localhost:5173/login"
+    },
+    {
+      "pluginId": "10109",
+      "name": "Modern Web Application",
+      "risk": 0,
+      "confidence": 2,
+      "url": "http://localhost:5173/login"
+    },
+    {
+      "pluginId": "10109",
+      "name": "Modern Web Application",
+      "risk": 0,
+      "confidence": 2,
+      "url": "http://localhost:5173/"
+    },
+    {
+      "pluginId": "10021",
+      "name": "X-Content-Type-Options Header Missing",
+      "risk": 1,
+      "confidence": 2,
+      "url": "http://localhost:5173/"
+    },
+    {
+      "pluginId": "10021",
+      "name": "X-Content-Type-Options Header Missing",
+      "risk": 1,
+      "confidence": 2,
+      "url": "http://localhost:5173/login"
+    }
+  ],
+  "counts": {
+    "informational": 2,
+    "low": 2,
+    "medium": 4,
+    "high": 0
+  },
+  "captures": [
+    {
+      "url": "http://localhost:5173/",
+      "status": 200
+    },
+    {
+      "url": "http://localhost:5173/login",
+      "status": 200
+    },
+    {
+      "url": "http://localhost:8080/actuator/health",
+      "status": 200
+    },
+    {
+      "url": "http://localhost:8080/app-test",
+      "status": 401
+    },
+    {
+      "url": "http://localhost:8080/api/v1/products?page=0&size=1",
+      "status": 401
+    },
+    {
+      "url": "http://localhost:8080/api/v1/products/stats",
+      "status": 401
+    },
+    {
+      "url": "http://localhost:8080/api/v1/auth/me",
+      "status": 401
+    },
+    {
+      "url": "http://localhost:8080/qa-h2-not-found",
+      "status": 401
+    }
+  ],
+  "scope": "anonymous fixed-GET import-only; no crawl, authenticated bodies, SPA execution or TLS coverage"
+}
