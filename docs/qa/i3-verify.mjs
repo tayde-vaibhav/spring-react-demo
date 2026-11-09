@@ -8,7 +8,9 @@ import { homedir } from 'node:os';
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '../..');
 const module=join(root,'backend/springreactdemo');
 const settings=join(root,'docs/qa/i3-maven-settings.xml');
-const jdk='/usr/lib/jvm/jdk-25.0.1-oracle-x64';
+const jdk = process.env.JAVA_HOME
+  ? resolve(process.env.JAVA_HOME)
+  : null;
 const run=(cmd,args,options={})=>execFileSync(cmd,args,{encoding:'utf8',timeout:5000,stdio:['ignore','pipe','pipe'],...options}).trim();
 const git=args=>run('git',args,{cwd:root});
 const docker=args=>run('docker',args);
@@ -31,7 +33,21 @@ const fingerprints=()=>preservedPaths.map(p=>createHash('sha256').update(readFil
 const started=Date.now();
 try{
  requireCheck(git(['branch','--show-current'])==='showcase-app','intended branch');
- requireCheck(existsSync(jdk+'/bin/java')&&existsSync(settings),'Java 25 and explicit settings present');
+ requireCheck(
+  jdk !== null &&
+  existsSync(join(jdk, 'bin', 'java')) &&
+  existsSync(join(jdk, 'bin', 'javac')) &&
+  existsSync(join(jdk, 'release')) &&
+  existsSync(settings),
+  'JAVA_HOME must point to a complete JDK with explicit Maven settings'
+);
+
+const release = readFileSync(join(jdk, 'release'), 'utf8');
+
+requireCheck(
+  /^JAVA_VERSION="25(?:\.|")/m.test(release),
+  'Java 25 is required'
+);
  requireCheck(!process.env.DOCKER_HOST&&!process.env.DOCKER_CONTEXT,'default Docker without endpoint overrides');
  if(existsSync(testcontainersProperties)){
  const entries=readFileSync(testcontainersProperties,'utf8').split(/\r?\n/).map(s=>s.trim()).filter(s=>s&&!/^[#!]/.test(s));
