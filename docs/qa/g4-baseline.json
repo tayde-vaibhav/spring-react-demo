@@ -1,0 +1,25 @@
+{
+  "item": "G4",
+  "phase": "before-restart",
+  "backendPid": 10453,
+  "healthHttp": 200,
+  "totalElements": 500,
+  "qaRecords": 0,
+  "inventorySha256": "3f9ed625da98e9fbd1c60666acba8b75da6644eddcf168543443c35e4ad96372",
+  "canonicalization": "GET products sorted id asc; recursively sort object keys, preserve array order; JSON.stringify; SHA-256",
+  "logByteOffset": 91840,
+  "logInode": 6948367,
+  "devProfileConfirmed": true,
+  "startupCompleted": true,
+  "productsSeedSkipped": true,
+  "usersCountVerified": true,
+  "mongoMetadata": {
+    "database": "springreactdemo",
+    "productsCount": 500,
+    "usersCount": 2,
+    "adminCount": 1,
+    "userCount": 1,
+    "duplicateUsernameGroups": 0,
+    "uniqueUsernameIndex": true
+  }
+}

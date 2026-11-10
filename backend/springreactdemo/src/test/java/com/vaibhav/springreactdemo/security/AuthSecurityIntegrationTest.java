@@ -25,6 +25,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
+import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.dao.OptimisticLockingFailureException;
@@ -43,10 +44,12 @@ import com.vaibhav.springreactdemo.product.dto.ProductResponse;
 import com.vaibhav.springreactdemo.product.dto.ProductUpdateRequest;
 import com.vaibhav.springreactdemo.user.User;
 import com.vaibhav.springreactdemo.user.UserRepository;
+import com.vaibhav.springreactdemo.support.MongoContainerTestConfiguration;
 
 @SpringBootTest
 @AutoConfigureMockMvc
 @ActiveProfiles("test")
+@Import(MongoContainerTestConfiguration.class)
 class AuthSecurityIntegrationTest {
 
     private static final AtomicInteger CLIENT_ID = new AtomicInteger(1);

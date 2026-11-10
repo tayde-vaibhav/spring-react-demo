@@ -1,0 +1,3 @@
+# Test classpath only: reject Boot contexts without owned Mongo container wiring.
+org.springframework.context.ApplicationContextInitializer=\
+com.vaibhav.springreactdemo.support.MongoTestIsolationInitializer

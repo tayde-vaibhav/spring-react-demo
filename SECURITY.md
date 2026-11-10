@@ -76,8 +76,61 @@ dev-user passwords), then export the variables before launching the backend.
 The `.env` file is ignored by Git and must never be committed.
 
 The `test` Spring profile is for automated tests only and must never be used
-outside tests. It requires a dedicated `MONGODB_TEST_URI` with no fallback to
-the development `MONGODB_URI`.
+outside tests. Full Boot tests use owned, non-reusable Mongo Testcontainers
+through test-scoped service connections; no external `MONGODB_TEST_URI` is
+supported and there is no fallback to development `MONGODB_URI`. A test-only
+initializer masks external URI/database properties and requires owned-container
+wiring before normal client initialization; a settings guard checks the
+container endpoint after standard Boot customization. Unit tests with mocked
+persistence remain Docker-free.
+
+Integration tests require local Docker and may acquire the pinned Mongo and
+cleanup/startup-check images, create ephemeral ports and use the Docker socket
+for cleanup. They do not own the development Compose service or its volume.
+Do not use remote Docker discovery/host overrides, custom Mongo-client/settings
+beans, disabled cleanup or reusable containers with this setup without a new
+isolation review. Live tests write only qa-owned fixtures in the isolated
+container and clean them up. Missing Docker must fail, never skip integration
+tests or select an external database. See [backend test prerequisites](README.md#backend-tests-and-coverage).
+The I2 focused Maven build and 21 Docker-free guard checks passed on 2026-11-09.
+The full no-database-environment build then failed with 25 context errors in
+289 tests: the test guard's injected provider excludes its own bean and trips
+the order assertion. No guard was disabled or bypassed. The approved test-only
+remediation uses a bean-factory provider lookup and adds three Spring-wiring
+regressions while retaining order/endpoint rejection. The corrected focused
+build and all 24 Docker-free checks passed, including the three new wiring
+regressions. The full rerun still failed with 25 context errors in 292 tests:
+the guard ties at lowest precedence with Boot's unordered Mongo metrics
+customizers and is not last. No order/endpoint check was relaxed. Test-only
+late guard registration and four additional regressions were implemented
+under approval. The corrected focused build now passes all 28 checks with zero
+failures/errors/skips. The latest working-tree full build subsequently passed
+296 tests with no failures/errors/skips and no database environment variables.
+Registration moves only the owned
+guard definition before instantiation; native metrics customizers and the
+final-order/owned-endpoint checks remain intact. The added metrics-chain tests
+assert that both native listeners remain installed and a later customizer is
+still rejected; both assertions passed in the latest focused run. The earlier
+24-check pass predates this registration change.
+Live owned-container ping/endpoint isolation and product persistence/auditing/
+optimistic-locking/cleanup regressions passed. Cleanup confirmed no remaining
+test containers and unchanged development Mongo state. Actual unavailable-Docker
+verification subsequently passed in an isolated offline run: host Docker
+sockets/networking and database/credential variables were inaccessible, Maven
+failed with the exact Docker-required message, and both scoped integration
+tests reported expected context-startup errors with no skips. A temporary
+writable artifact-cache copy resolved the harness's read-only file-lock issue;
+the original cache and isolation guards were unchanged. No downloads, Docker
+commands or development-service changes were needed. User-committed fresh-clone
+proof subsequently passed for `9e38c62`: offline full verification in a clean
+local Git clone passed 296 tests with no failures/errors/skips and no database
+or development-credential/configuration environment variables in the child.
+Owned live-Mongo isolation/persistence tests passed and all test containers
+cleaned up; development Mongo identity/state/start time/health were unchanged.
+Only the reviewed standard local Unix-socket Testcontainers discovery-cache
+entry was accepted; unreviewed overrides remain blocked. No downloads or
+development-service changes occurred. This completes I2 without removing any
+existing assertions or weakening the isolation guards.
 
 For QA checklist sections A–C, the login limiter may temporarily use a
 two-minute window by setting `LOGIN_RATE_LIMIT_WINDOW=2m` when starting the
